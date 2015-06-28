@@ -1,0 +1,12 @@
+{
+    "name": "neurons",
+    "description": "A minimal D application.",
+    "copyright": "Copyright © 2015, ianis",
+    "authors": ["ianis"],
+    "dependencies": {
+        "derelict-sdl2": "~>1.9.5"
+    },
+    "libs": [
+        "SDL2"
+    ]
+}

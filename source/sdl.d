@@ -1,31 +1,42 @@
 import derelict.sdl2.sdl;
 import derelict.sdl2.ttf;
+import subscribed;
 import helpers;
-import global;
+import vector;
+
+private SDL_Event event;
+
+SDL_Renderer* renderer;
+SDL_Window* window;
+TTF_Font* font;
+
+auto white = SDL_Color(255, 255, 255, SDL_ALPHA_OPAQUE);
+auto black = SDL_Color(0, 0, 0, SDL_ALPHA_OPAQUE);
+auto screen = Vector(800, 600);
 
 shared static this()
 {
     DerelictSDL2.load;
 
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
-        quit("Failed to initialize SDL: %s");
+        quit("Failed to initialize SDL");
 
     window = SDL_CreateWindow(
         "Neural network simulation",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
-        sizeX,
-        sizeY,
+        screen.x,
+        screen.y,
         SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED
     );
 
     if (window is null)
-        quit("Failed to create window: %s");
+        quit("Failed to create window");
 
     renderer = window.SDL_CreateRenderer(-1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
 
     if (renderer is null)
-        quit("Failed to create renderer: %s");
+        quit("Failed to create renderer");
 
     renderer.SDL_RenderClear;
 }
@@ -35,12 +46,12 @@ shared static this()
     DerelictSDL2ttf.load;
 
     if (TTF_Init() != 0)
-        quit("Failed to initialize SDL TTF : %s");
+        quit("Failed to initialize SDL TTF ");
 
     font = TTF_OpenFont("liberation.ttf", 20);
 
     if (font is null)
-        quit("Failed to load font: %s");
+        quit("Failed to load font");
 }
 
 shared static ~this()
@@ -60,7 +71,7 @@ void quit(const(char)* message)
 {
     import std.c.stdlib: exit;
     import std.c.stdio: printf;
-    printf(message, SDL_GetError());
+    printf("%s: %s\n", message, SDL_GetError());
     exit(1);
 }
 
@@ -71,55 +82,44 @@ void resetRenderTarget()
 
 void updateScreenSize()
 {
+    int x, y;
+    resetRenderTarget;
     renderer.SDL_SetRenderDrawColor(0, 0, 0, SDL_ALPHA_OPAQUE);
     renderer.SDL_RenderClear;
-    window.SDL_GetWindowSize(&sizeX, &sizeY);
-    renderer.SDL_RenderSetLogicalSize(sizeX, sizeY);
+    window.SDL_GetWindowSize(&x, &y);
+    renderer.SDL_RenderSetLogicalSize(x, y);
+    screen = Vector(x, y);
 }
 
 void redraw()
 {
+    updateScreenSize;
+    publish("updateTextures");
+    publish("render");
+
     resetRenderTarget;
     renderer.SDL_RenderClear;
 
-    foreach (func; rendering)
-        func();
+    publish("redraw");
 
+    resetRenderTarget;
     renderer.SDL_RenderPresent;
 }
 
 void handleEvent()
 {
-    switch (lastEvent.type) {
-        case SDL_WINDOWEVENT:
-            switch (lastEvent.window.event) {
-                case SDL_WINDOWEVENT_RESIZED, SDL_WINDOWEVENT_EXPOSED:
-                    updateScreenSize;
+    if (event.type == SDL_WINDOWEVENT && (
+        event.window.event == SDL_WINDOWEVENT_RESIZED ||
+        event.window.event == SDL_WINDOWEVENT_EXPOSED))
+        redraw;
 
-                    foreach (func; textureUpdating)
-                        func();
-
-                    redraw;
-                    break;
-
-                default: break;
-            }
-
-            break;
-
-        case SDL_KEYUP:
-            if (lastEvent.key.keysym.sym in states)
-                states[lastEvent.key.keysym.sym]();
-
-            break;
-
-        default: break;
-    }
+    else if (event.type == SDL_KEYUP)
+        publish("keyChange", event.key.keysym.sym);
 }
 
 void handlePause(int timeout = 25)
 {
-    if (SDL_WaitEventTimeout(&lastEvent, timeout))
+    if (SDL_WaitEventTimeout(&event, timeout))
         handleEvent;
 }
 

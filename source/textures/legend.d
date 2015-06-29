@@ -1,26 +1,38 @@
-static import common;
-import std.functional: partial;
+module legend;
+import std.functional: toDelegate;
 import derelict.sdl2.sdl;
 import derelict.sdl2.ttf;
-import global;
+import subscribed;
+import texture;
 import sdl;
+import helpers;
 
-mixin common.Texture;
+private
+{
+    Texture tex;
 
-private static enum legend = [
-    "Legend:",
-    "'r' to generate another network",
-    "'v' to change initial voltage",
-    "'space' to launch impulse",
-    "'esc' to quit"
-];
+    static enum legend = [
+        "Legend:",
+        "'r' to generate another network",
+        "'v' to change initial voltage",
+        "'space' to launch impulse",
+        "'esc' to quit"
+    ];
+}
+
+shared static this()
+{
+    tex = new Texture;
+    subscribe("render", toDelegate(&render));
+}
 
 void render()
 {
-    setRenderTarget;
+    tex.setRenderTarget;
     auto offsetTop = 50;
 
-    foreach (str; legend) {
+    foreach (str; legend)
+    {
         auto textSurface = TTF_RenderText_Shaded(font, str.ptr, white, black);
         auto texture = renderer.SDL_CreateTextureFromSurface(textSurface);
 

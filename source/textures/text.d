@@ -1,10 +1,21 @@
-static import common;
-import std.functional: partial;
+module text;
+import texture;
+import std.functional: toDelegate;
 import derelict.sdl2.sdl;
 import derelict.sdl2.ttf;
-import global;
+import subscribed;
+import sdl;
 
-mixin common.Texture;
+private
+{
+    string message;
+    Texture tex;
+}
+
+shared static this()
+{
+    tex = new Texture;
+}
 
 void renderMessage(string msg)
 {
@@ -15,8 +26,8 @@ void renderMessage(string msg)
     auto texture = renderer.SDL_CreateTextureFromSurface(textSurface);
 
     auto rect = SDL_Rect(
-        (sizeX - textSurface.w) / 2,
-        sizeY - textSurface.h - 50,
+        (screen.x - textSurface.w) / 2,
+        screen.y - textSurface.h - 50,
         textSurface.w,
         textSurface.h
     );
@@ -25,9 +36,14 @@ void renderMessage(string msg)
     SDL_FreeSurface(textSurface);
 }
 
+void render()
+{
+    renderMessage(message);
+}
+
 void hideMessage()
 {
-    setRenderTarget;
+    tex.setRenderTarget;
     message = "";
     renderer.SDL_RenderClear;
 }

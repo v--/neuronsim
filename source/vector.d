@@ -1,9 +1,7 @@
 import std.math: sin, cos;
 import helpers;
 import sdl;
-import global;
 
-//struct Vector(T, L) if (T == float, L == 2)
 struct Vector
 {
     float _x, _y;
@@ -20,7 +18,7 @@ struct Vector
 
     static Vector center()
     {
-        return Vector(sizeX / 2, sizeY / 2);
+        return Vector(screen.x / 2, screen.y / 2);
     }
 
     static Vector fromPolar(float length, float angle)

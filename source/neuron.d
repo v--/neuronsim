@@ -5,7 +5,7 @@ import std.conv: to;
 import helpers;
 import parameters;
 import vector;
-import global;
+import sdl: screen;
 
 class Neuron
 {
@@ -33,7 +33,7 @@ class Neuron
 
     @property float length()
     {
-        return params.xTotal * sizeY / 9;
+        return params.xTotal * screen.y / 9;
     }
 
     @property Vector start()

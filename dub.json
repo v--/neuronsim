@@ -4,7 +4,8 @@
     "copyright": "Copyright © 2015, ianis",
     "authors": ["ianis"],
     "dependencies": {
-        "derelict-sdl2": "~>1.9.5"
+        "derelict-sdl2": "~>1.9.5",
+        "subscribed": "~>1.0.0"
     },
     "libs": [
         "SDL2"

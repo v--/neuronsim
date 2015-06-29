@@ -5,9 +5,9 @@ import std.conv: to;
 import textures;
 import helpers;
 import impulse;
-import global;
 import neuron;
 import vector;
+import global;
 import sdl;
 
 private
@@ -56,7 +56,7 @@ void simulateImpulse(Impulse impulse)
 
     foreach (int j, row; impulse.matrix) {
         auto start = neuron.start + Vector.fromPolar(10, neuron.angle);
-        auto length = (neuron.params.xTotal * sizeY / 5 - 20) / (seg - 1);
+        auto length = (neuron.params.xTotal * screen.y / 5 - 20) / (seg - 1);
         auto step = Vector.fromPolar(length, neuron.angle);
 
         foreach (int i, number; row) {
@@ -74,7 +74,7 @@ void simulateImpulse(Impulse impulse)
 
     network.setPurple(scaled);
     network.drawDisk(neuron.end);
-    redraw;
+    //redraw;
 
     foreach (child; impulse.connected) {
         fibers ~= genFiber(child);
@@ -97,6 +97,6 @@ void runSimulation()
             fiber.call;
 
         handlePause;
-        redraw;
+        //redraw;
     }
 }

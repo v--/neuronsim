@@ -12,6 +12,7 @@
 		"derelict-sdl2": "1.9.5",
 		"gfm": "2.3.11",
 		"derelict-fi": "2.0.1",
+		"std_event": "~master",
 		"derelict-enet": "2.0.0",
 		"derelict-gl3": "1.0.13"
 	}

@@ -1,31 +1,17 @@
 import derelict.sdl2.sdl;
-import std.c.stdlib : exit;
-import std.stdio : writefln;
-import std.math : sin, cos;
+import derelict.sdl2.ttf;
 import helpers;
-import point;
-import neuron;
-import impulse;
-import simulation;
-
-SDL_Window* window;
-SDL_Renderer* renderer;
-
-int sizeX = 800;
-int sizeY = 600;
+import global;
 
 shared static this()
 {
-    DerelictSDL2.load();
+    DerelictSDL2.load;
 
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
-    {
-        writefln("Failed to initialize SDL : %s", SDL_GetError());
-        exit(1);
-    }
+        quit("Failed to initialize SDL: %s");
 
     window = SDL_CreateWindow(
-        "Neuron simulation",
+        "Neural network simulation",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         sizeX,
@@ -34,27 +20,53 @@ shared static this()
     );
 
     if (window is null)
-    {
-        writefln("Failed to create window : %s", SDL_GetError());
-        exit(1);
-    }
+        quit("Failed to create window: %s");
 
-    renderer = window.SDL_CreateRenderer(-1, SDL_RENDERER_ACCELERATED);
+    renderer = window.SDL_CreateRenderer(-1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
 
     if (renderer is null)
-    {
-        writefln("Failed to create renderer : %s", SDL_GetError());
-        exit(1);
-    }
+        quit("Failed to create renderer: %s");
 
     renderer.SDL_RenderClear;
-    renderer.SDL_RenderPresent;
+}
+
+shared static this()
+{
+    DerelictSDL2ttf.load;
+
+    if (TTF_Init() != 0)
+        quit("Failed to initialize SDL TTF : %s");
+
+    font = TTF_OpenFont("liberation.ttf", 20);
+
+    if (font is null)
+        quit("Failed to load font: %s");
+}
+
+shared static ~this()
+{
+    TTF_CloseFont(font);
+    TTF_Quit();
 }
 
 shared static ~this()
 {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    SDL_Quit();
+}
+
+void quit(const(char)* message)
+{
+    import std.c.stdlib: exit;
+    import std.c.stdio: printf;
+    printf(message, SDL_GetError());
+    exit(1);
+}
+
+void resetRenderTarget()
+{
+    renderer.SDL_SetRenderTarget(null);
 }
 
 void updateScreenSize()
@@ -65,94 +77,54 @@ void updateScreenSize()
     renderer.SDL_RenderSetLogicalSize(sizeX, sizeY);
 }
 
-void enterEventLoop()
-{
-    SDL_Event event;
-
-    while (SDL_WaitEvent(&event) >= 0) {
-        if (event.type == SDL_WINDOWEVENT) {
-            redraw;
-            continue;
-        }
-
-        if (event.type != SDL_KEYUP) {
-            continue;
-        }
-
-        switch (event.key.keysym.sym) {
-            case SDLK_ESCAPE:
-                exit(0);
-                break;
-
-            case SDLK_SPACE:
-                runSimulation;
-                break;
-
-            case SDLK_r:
-                return;
-
-            default:
-                break;
-        }
-    }
-}
-
 void redraw()
 {
-    updateScreenSize;
-    drawNeuron;
-    render;
-}
+    resetRenderTarget;
+    renderer.SDL_RenderClear;
 
-void rebuild()
-{
-    Neuron.root = new Neuron;
-    Impulse.root = new Impulse(Neuron.root, 100);
-}
+    foreach (func; rendering)
+        func();
 
-void render()
-{
     renderer.SDL_RenderPresent;
 }
 
-void drawPoint(Point point)
+void handleEvent()
 {
-    renderer.SDL_RenderDrawPoint(point.x, point.y);
-}
+    switch (lastEvent.type) {
+        case SDL_WINDOWEVENT:
+            switch (lastEvent.window.event) {
+                case SDL_WINDOWEVENT_RESIZED, SDL_WINDOWEVENT_EXPOSED:
+                    updateScreenSize;
 
-void drawLine(Point start, float length, float angle)
-{
-    auto starting = start;
+                    foreach (func; textureUpdating)
+                        func();
 
-    foreach (l; 0..length) {
-        starting += Point.fromPolar(1, angle);
-        drawPoint(starting);
-        drawPoint(starting + Point.fromPolar(1, angle + PI / 2));
-        drawPoint(starting + Point.fromPolar(1, angle - PI / 2));
+                    redraw;
+                    break;
+
+                default: break;
+            }
+
+            break;
+
+        case SDL_KEYUP:
+            if (lastEvent.key.keysym.sym in states)
+                states[lastEvent.key.keysym.sym]();
+
+            break;
+
+        default: break;
     }
 }
 
-void drawCircle(Point center, float radius)
+void handlePause(int timeout = 25)
 {
-    foreach (circlePoint; 0..radius * 16) {
-        auto point = Point.fromPolar(radius, PI / (radius * 8) * circlePoint);
-        drawPoint(center + point);
-    }
+    if (SDL_WaitEventTimeout(&lastEvent, timeout))
+        handleEvent;
 }
 
-void drawDisk(Point center, int radius = 10)
+void enterEventLoop()
 {
-    foreach (r; 1..radius) {
-        drawCircle(center, r);
-    }
-}
-
-void setPurple(ubyte shade)
-{
-    renderer.SDL_SetRenderDrawColor(shade, 48, shade, SDL_ALPHA_OPAQUE);
-}
-
-void resetColor()
-{
-    setPurple(48);
+    while (true)
+        handlePause;
 }

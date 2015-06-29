@@ -9,7 +9,8 @@ enum int seg = 10;
 
 class Impulse
 {
-    static Impulse root;
+    static float defaultv0 = 100;
+
     float v0, endVoltage;
     float[][] matrix;
 
@@ -19,6 +20,9 @@ class Impulse
 
     float endPeak()
     {
+        if (parent is null)
+            return v0;
+
         float[] end;
 
         foreach (row; matrix)
@@ -29,7 +33,12 @@ class Impulse
 
     @property float peak()
     {
-        float peak = matrix.extent!float.max;
+        float peak;
+
+        if (parent is null)
+            peak = v0;
+        else
+            peak = matrix.extent!float.max;
 
         foreach (child; connected)
             peak = max(peak, child.peak);
@@ -37,13 +46,22 @@ class Impulse
         return max(peak, v0);
     }
 
-    this(Neuron neuron, float v0, Impulse parent = null)
+    this(Neuron neuron, float v0 = defaultv0, Impulse parent = null)
     {
         this.neuron = neuron;
         this.v0 = v0;
         this.parent = parent;
-        matrix = neuron.impulse(v0, seg);
-        endVoltage = endPeak;
+
+        if (parent is null)
+        {
+            endVoltage = v0;
+        }
+
+        else
+        {
+            matrix = neuron.impulse(v0, seg);
+            endVoltage = endPeak;
+        }
 
         if (neuron.connected.length == 0 || endVoltage == 0) {
             return;
@@ -52,8 +70,15 @@ class Impulse
         auto childVoltage = endVoltage / neuron.connected.length;
 
         foreach (subneuron; neuron.connected) {
-            auto voltage = uniform(0.7 * childVoltage, 0.95 * childVoltage);
+            auto bounds = [0.7 * childVoltage, 0.95 * childVoltage].extent;
+            auto voltage = uniform(bounds.min, bounds.max);
             connected ~= new Impulse(subneuron, voltage, this);
         }
+    }
+
+    ~this()
+    {
+        foreach (child; connected)
+            child.destroy;
     }
 }

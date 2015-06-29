@@ -56,19 +56,20 @@ unittest
     assert(compress([1, 2, 3, 4, 5], 3) == [1, 3, 5]);
 }
 
-void swap(T)(T[] array, size_t a, size_t b)
-in
+void swap(T)(ref T a, ref T b)
 {
-    assert(a >= 0);
-    assert(a < array.length);
-    assert(b >= 0);
-    assert(b < array.length);
+    auto temp = a;
+    a = b;
+    b = temp;
 }
-body
+
+unittest
 {
-    auto temp = array[b];
-    array[b] = array[a];
-    array[a] = temp;
+    auto array1 = [0, 1, 2];
+    auto array2 = [1, 2, 3];
+    swap(array1, array2);
+    assert(array1 == [1, 2, 3]);
+    assert(array2 == [0, 1, 2]);
 }
 
 Extent!T extent(T)(T[] array)

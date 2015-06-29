@@ -1,33 +1,39 @@
 import core.thread: Fiber, Thread, dur;
-import std.functional;
+import std.algorithm: find;
+import std.container;
 import std.conv: to;
-import neuron;
-import point;
-import sdl;
+import textures;
 import helpers;
 import impulse;
+import global;
+import neuron;
+import vector;
+import sdl;
 
-Fiber[] fibers;
-Linscale!float scale;
-
-void drawNeuron(Neuron neuron = Neuron.root)
+private
 {
-    resetColor;
-    drawLine(neuron.start, neuron.length, neuron.angle);
-    drawDisk(neuron.end);
+    Linscale!float scale;
+    DList!Fiber fibers;
+
+    Fiber genFiber(Impulse impulse)
+    {
+        void func()
+        {
+            simulateImpulse(impulse);
+        }
+
+        return new Fiber(&func);
+    }
+}
+
+void drawNeuron(Neuron neuron = rootNeuron)
+{
+    network.resetColor;
+    network.drawLine(neuron.start, neuron.length, neuron.angle);
+    network.drawDisk(neuron.end);
 
     foreach (subneuron; neuron.connected)
         drawNeuron(subneuron);
-}
-
-Fiber genFiber(Impulse impulse)
-{
-    void func()
-    {
-        simulateImpulse(impulse);
-    }
-
-    return new Fiber(&func);
 }
 
 void simulateImpulse(Impulse impulse)
@@ -35,9 +41,9 @@ void simulateImpulse(Impulse impulse)
     if (impulse.parent is null) {
         auto scaled = to!ubyte(scale(impulse.v0));
 
-        setPurple(scaled);
-        drawDisk(impulse.neuron.end);
-        render;
+        network.setPurple(scaled);
+        network.drawDisk(impulse.neuron.end);
+        Fiber.yield;
 
         foreach (child; impulse.connected) {
             fibers ~= genFiber(child);
@@ -49,26 +55,26 @@ void simulateImpulse(Impulse impulse)
     auto neuron = impulse.neuron;
 
     foreach (int j, row; impulse.matrix) {
-        auto start = neuron.start + Point.fromPolar(10, neuron.angle);
-        auto length = (neuron.length - 20) / (seg - 1);
-        auto step = Point.fromPolar(length, neuron.angle);
+        auto start = neuron.start + Vector.fromPolar(10, neuron.angle);
+        auto length = (neuron.params.xTotal * sizeY / 5 - 20) / (seg - 1);
+        auto step = Vector.fromPolar(length, neuron.angle);
 
         foreach (int i, number; row) {
             auto scaled = to!ubyte(scale(number));
-            setPurple(scaled);
-            drawLine(start, length, neuron.angle);
+            //setnetwork.Purple(scaled);
+            network.setPurple(255);
+            network.drawLine(start, length, neuron.angle);
             start += step;
         }
 
-        render;
         Fiber.yield;
     }
 
     auto scaled = to!ubyte(scale(impulse.v0));
 
-    setPurple(scaled);
-    drawDisk(neuron.end);
-    render;
+    network.setPurple(scaled);
+    network.drawDisk(neuron.end);
+    redraw;
 
     foreach (child; impulse.connected) {
         fibers ~= genFiber(child);
@@ -77,26 +83,20 @@ void simulateImpulse(Impulse impulse)
 
 void runSimulation()
 {
-    scale = linscale([0, Impulse.root.peak], [48f, 255f]);
+    scale = linscale([0, rootImpulse.peak], [48f, 255f]);
+    fibers ~= genFiber(rootImpulse);
 
-    bool checkFibers()
-    {
+    while (true) {
+        auto terminated = find!(f => f.state != Fiber.State.HOLD)(fibers[]);
+        fibers.remove(terminated);
+
+        if (fibers.empty)
+            break;
+
         foreach (fiber; fibers)
-            if (fiber.state == Fiber.State.HOLD)
-                return true;
+            fiber.call;
 
-        return false;
-    }
-
-    fibers ~= genFiber(Impulse.root);
-
-    while (checkFibers) {
-        foreach (fiber; fibers) {
-            if (fiber.state == Fiber.State.HOLD) {
-                fiber.call;
-            }
-        }
-
-        Thread.sleep(dur!"msecs"(25));
+        handlePause;
+        redraw;
     }
 }

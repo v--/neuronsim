@@ -4,12 +4,12 @@ import std.algorithm: min;
 import std.conv: to;
 import helpers;
 import parameters;
-import vector;
-import sdl: screen;
+//import vector;
 
 class Neuron
 {
     static float calcTempFactor(float temp) { return 3 ^^ ((6.3 - temp) / 10); }
+    static Neuron root;
 
     Neuron parent;
     Neuron[] connected;
@@ -33,24 +33,25 @@ class Neuron
 
     @property float length()
     {
-        return params.xTotal * screen.y / 9;
+        return 0;
+        //return params.xTotal * screen.y / 9;
     }
 
-    @property Vector start()
-    {
-        if (parent is null)
-            return Vector.center;
-        else
-            return parent.end;
-    }
+    //@property Vector start()
+    //{
+    //    if (parent is null)
+    //        return Vector.center;
+    //    else
+    //        return parent.end;
+    //}
 
-    @property Vector end()
-    {
-        if (parent is null)
-            return Vector.center;
-        else
-            return start + Vector(length * cos(angle), length * sin(angle));
-    }
+    //@property Vector end()
+    //{
+    //    if (parent is null)
+    //        return Vector.center;
+    //    else
+    //        return start + Vector(length * cos(angle), length * sin(angle));
+    //}
 
     this(Parameters params = maxParams, Neuron parent = null, int level = 0, int parentIndex = 0, float parentAngle = 0)
     {

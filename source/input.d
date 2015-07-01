@@ -1,16 +1,16 @@
-import derelict.sdl2.sdl;
+import Dgame.System.Keyboard;
 import std.functional: toDelegate;
 import std.c.stdlib: exit;
 import std.string: format;
 import std.conv: to;
-import helpers;
 import subscribed;
 import impulse;
-import sdl;
-import textures;
+import neuron;
 
 private
 {
+    alias Key = Keyboard.Key;
+    bool awaitingInput;
     enum string messageBase = "Please enter a new voltage value:";
     short v0buffer = 0;
 }
@@ -20,34 +20,44 @@ shared static this()
     subscribe("keyChange", toDelegate(&handleKeyEvent));
 }
 
-void handleKeyEvent(int key)
+void handleKeyEvent(Key key)
 {
+    import derelict.sdl2.sdl;
+
     switch (key)
     {
-        //case SDLK_r: rebuildNetwork; break
-        //case SDLK_v: startChangeVoltage; break;
-        case SDLK_ESCAPE: exit(0); break;
-        case SDLK_RETURN: endChangeVoltage; break;
-        //case SDLK_SPACE: simulate;
-        case SDLK_0, SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7,
-             SDLK_8, SDLK_9, SDLK_MINUS, SDLK_BACKSPACE:
-                 numericInput(*SDL_GetKeyName(key));
-                 break;
+        //case Key.R: awaitingInput = false; rebuildNetwork; break
+        case Key.V: startChangeVoltage; break;
+        case Key.H: resetInput; publish("toggleHelp"); publish("redraw"); return;
+        case Key.Escape: exit(0); break;
+        case Key.Return: endChangeVoltage; break;
+        //case Key.Space: awaitingInput = false; simulate; break;
+        case Key.Num0, Key.Num1, Key.Num2, Key.Num3, Key.Num4, Key.Num5,
+             Key.Num6, Key.Num7, Key.Num8, Key.Num9, Key.Minus, Key.Backspace:
+                 onInput(*SDL_GetKeyName(key));
+                 return;
 
         default: break;
     }
+
+    publish("hideHelp");
+    publish("redraw");
 }
 
-void numericInput(char symbol)
+void resetInput()
 {
-    //if (!awaitingInput) {
-    //    return;
-    //}
+    awaitingInput = false;
+    v0buffer = 0;
+    publish("hideInfo");
+}
+
+void onInput(char symbol)
+{
+    if (!awaitingInput)
+        return;
 
     if (symbol == '-')
-    {
         v0buffer = -v0buffer;
-    }
 
     else
     {
@@ -63,28 +73,28 @@ void numericInput(char symbol)
         catch (Exception e) {}
     }
 
-    legend.render;
-    text.renderMessage("%s %d".format(messageBase, v0buffer));
-    //redraw;
+     publish("showInfo", "%s %d".format(messageBase, v0buffer));
+     publish("redraw");
 }
 
 void startChangeVoltage()
 {
-    //awaitingInput = true;
-    //text.renderMessage(messageBase);
-    //redraw;
+    awaitingInput = true;
+    publish("showInfo", messageBase);
+    publish("redraw");
 }
 
 void endChangeVoltage()
 {
-//    if (awaitingInput) {
-//        awaitingInput = false;
-//        Impulse.defaultv0 = v0buffer;
-//        v0buffer = 0;
-//        rootImpulse.destroy;
-//        rootImpulse = new Impulse(rootNeuron);
-//    }
+    if (awaitingInput)
+    {
+        awaitingInput = false;
+        Impulse.defaultv0 = v0buffer;
+        v0buffer = 0;
+        //Impulse.root.destroy;
+        //Impulse.root = new Impulse(Neuron.root);
+    }
 
-//    text.hideMessage;
-    //redraw;
+    publish("hideInfo");
+    publish("redraw");
 }

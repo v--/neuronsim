@@ -21,3 +21,5 @@ __v_0__      "Initial voltage (mV)"
 __temp__     "Temperature (deg C)"
 __seg_x__    "Number of space data points
 
+
+Icon made by Freepik from www.flaticon.com

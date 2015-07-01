@@ -1,21 +1,22 @@
 {
 	"fileVersion": 1,
 	"versions": {
-		"logger": "0.3.3",
-		"ae-graphics": "0.0.7",
-		"cairod": "~master",
-		"derelict-util": "2.0.0",
 		"colorize": "1.0.5",
-		"derelict-assimp3": "1.0.1",
-		"gtk-d": "~master",
-		"matte": "0.1.0",
-		"derelict-sdl2": "1.9.5",
-		"gfm": "2.3.11",
 		"derelict-fi": "2.0.1",
-		"std_event": "~master",
-		"pubsub-d": "~master",
 		"subscribed": "1.0.0",
+		"logger": "0.3.3",
 		"derelict-enet": "2.0.0",
+		"std_event": "~master",
+		"cairod": "~master",
+		"gtk-d": "~master",
+		"ae-graphics": "0.0.7",
+		"derelict-sdl2": "1.9.5",
+		"pubsub-d": "~master",
+		"matte": "0.1.0",
+		"derelict-util": "2.0.0",
+		"gfm": "2.3.11",
+		"dgame": "0.6.0",
+		"derelict-assimp3": "1.0.1",
 		"derelict-gl3": "1.0.13"
 	}
 }

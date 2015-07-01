@@ -5,11 +5,12 @@ import std.conv: to;
 import helpers;
 import neuron;
 
-enum int seg = 10;
+enum int segX = 10;
 
 class Impulse
 {
     static float defaultv0 = 100;
+    static Impulse root;
 
     float v0, endVoltage;
     float[][] matrix;
@@ -59,7 +60,7 @@ class Impulse
 
         else
         {
-            matrix = neuron.impulse(v0, seg);
+            matrix = neuron.impulse(v0, segX);
             endVoltage = endPeak;
         }
 

@@ -1,33 +1,64 @@
-import derelict.sdl2.types;
-import helpers;
-import sdl;
-import subscribed;
-import impulse;
-import neuron;
-import simulation;
+import Dgame.System;
+import Dgame.Window;
+import Dgame.Graphic;
+import Dgame.Math;
+import subscribed.pubsub;
+import derelict.sdl2.ttf;
+import drawable;
 import input;
-import textures;
-import global;
 
-void simulate()
+shared static this()
 {
-    awaitingInput = false;
-    publish("redraw");
-    runSimulation;
+    TTF_Init();
 }
 
-void rebuildNetwork()
+shared static ~this()
 {
-    awaitingInput = false;
-    rootNeuron.destroy;
-    rootNeuron = new Neuron;
-    rootImpulse.destroy;
-    rootImpulse = new Impulse(rootNeuron);
-    publish("redraw");
+    TTF_Quit();
 }
 
 void main()
 {
-    //redraw;
-    enterEventLoop;
+    auto icon = Surface("res/icon.png");
+    auto font = Font("res/liberation.ttf", 20);
+    auto flags = Window.Style.Resizeable | Window.Style.Maximized;
+    auto glSettings = GLContextSettings(GLContextSettings.AntiAlias.X4);
+    auto window = Window(800, 600, "Neural simulation", flags, glSettings);
+    Event event;
+
+    window.setIcon(icon);
+    window.setClearColor(Color4b.Black);
+
+    void redraw()
+    {
+        resizeProjection(&window);
+        window.clear;
+        publish("render", &window, &font);
+        window.display;
+    }
+
+    subscribe("redraw", &redraw);
+
+    while (true)
+    {
+        if (window.poll(&event))
+        {
+            if (event.window.event == WindowEvent.Type.Resized || event.window.event == WindowEvent.Type.Exposed)
+                redraw;
+
+            else if (event.type == Event.Type.KeyDown)
+                publish("keyChange", event.keyboard.key);
+        }
+    }
+}
+
+void resizeProjection(Window* window)
+{
+    import derelict.opengl3.gl;
+    auto size = window.getSize;
+    auto rect = Rect(0, 0, size.width, size.height);
+    window.projection = window.projection.init;
+    window.projection.ortho(rect);
+    window.loadProjection();
+    glViewport(0, 0, size.width, size.height);
 }

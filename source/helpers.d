@@ -1,5 +1,15 @@
 public import std.stdio: writeln;
+import Dgame.System.Font;
+import Dgame.Graphic.Text;
+import Dgame.Graphic.Color;
 import std.typecons: Tuple;
+
+void refineText(Text text)
+{
+    text.foreground = Color4b.White;
+    text.background = Color4b(0, 0, 0, 0);
+    text.mode = Font.Mode.Shaded;
+}
 
 alias Linscale(T) = T delegate(T);
 alias Extent(T) = Tuple!(

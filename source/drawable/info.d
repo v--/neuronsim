@@ -8,16 +8,15 @@ import std.typecons: scoped;
 import subscribed.pubsub;
 import helpers;
 
-string message;
+private string message;
 
 shared static this()
 {
-    subscribe("render", toDelegate(&render));
     subscribe("showInfo", toDelegate(&showInfo));
     subscribe("hideInfo", toDelegate(&hideInfo));
 }
 
-void render(Window* window, Font* font)
+void renderInfo(Window* window, Font* font)
 {
     if (!message.length)
         return;

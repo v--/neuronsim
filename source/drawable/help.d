@@ -3,33 +3,43 @@ import Dgame.System;
 import Dgame.Window;
 import Dgame.Graphic;
 import Dgame.Math;
-import std.functional: toDelegate;
 import std.typecons: scoped;
+import std.functional: toDelegate;
 import subscribed.pubsub;
 import helpers;
 
-bool state;
+private
+{
+    bool state;
 
-static enum help = [
-    "Esc":         "Quit",
-    "Space":       "Launch an impulse simulation",
-    "Backspace":   "Delete numbers while editing the initial voltage",
-    "Minus":       "Change the sign of the voltage while editing it",
-    "Return":      "Accept new initial voltage",
-    "V":           "Change initial voltage, then any number to type",
-    "R":           "Generate another network",
-    "H":           "Display this help, then any key to hide it"
-];
+    static enum help = [
+        "Esc":         "Quit",
+        "Space":       "Launch an impulse simulation",
+        "Backspace":   "Delete numbers while editing the initial voltage",
+        "Minus":       "Change the sign of the voltage while editing it",
+        "Return":      "Accept new initial voltage",
+        "V":           "Change initial voltage, then any number to type",
+        "R":           "Generate another network",
+        "H":           "Display this help, then any key to hide it"
+    ];
+}
 
 shared static this()
 {
-    subscribe("render", toDelegate(&render));
     subscribe("toggleHelp", toDelegate(&toggleHelp));
     subscribe("hideHelp", toDelegate(&hideHelp));
 }
 
 void renderHelp(Window* window, Font* font)
 {
+    auto text = scoped!Text(*font, "Press 'H' for help");
+    text.setPosition(50, 50);
+    refineText(text);
+    window.draw(text);
+
+    if (!state)
+        return;
+
     drawBlocker(window, font);
     const size = window.getSize;
     const offsetLeft = size.width / 2 - 200;
@@ -62,19 +72,8 @@ void drawBlocker(Window* window, Font* font)
         ]
     );
 
-    blocker.setColor(Color4b.Black.withTransparency(200));
+    blocker.setColor(Color4b.Black.withTransparency(230));
     window.draw(blocker);
-}
-
-void render(Window* window, Font* font)
-{
-    auto text = scoped!Text(*font, "Press 'H' for help");
-    text.setPosition(50, 50);
-    refineText(text);
-    window.draw(text);
-
-    if (state)
-        renderHelp(window, font);
 }
 
 void toggleHelp()

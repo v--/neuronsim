@@ -26,7 +26,7 @@ void handleKeyEvent(Key key)
 
     switch (key)
     {
-        //case Key.R: awaitingInput = false; rebuildNetwork; break
+        case Key.R: resetInput; publish("rebuildNetwork"); break;
         case Key.V: startChangeVoltage; break;
         case Key.H: resetInput; publish("toggleHelp"); publish("redraw"); return;
         case Key.Escape: exit(0); break;
@@ -73,7 +73,7 @@ void onInput(char symbol)
         catch (Exception e) {}
     }
 
-     publish("showInfo", "%s %d".format(messageBase, v0buffer));
+     publish("showInfo", "%s %dmv".format(messageBase, v0buffer));
      publish("redraw");
 }
 

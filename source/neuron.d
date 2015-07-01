@@ -1,10 +1,12 @@
+module neuron;
+import Dgame.Math;
 import std.math: floor, exp, sin, cos, PI;
-import std.stdio;
+import std.functional: toDelegate;
 import std.algorithm: min;
 import std.conv: to;
+import subscribed.pubsub;
 import helpers;
 import parameters;
-//import vector;
 
 class Neuron
 {
@@ -31,47 +33,42 @@ class Neuron
     float n0    (float v) { return alphaN(v) / (alphaN(v) + betaN(v)); }
     float tauN  (float v) { return 1 / (alphaN(v) + betaN(v)); }
 
-    @property float length()
+    @property Vector2f start()
     {
-        return 0;
-        //return params.xTotal * screen.y / 9;
+        if (parent is null)
+            return Vector2f.init;
+        else
+            return parent.end;
     }
 
-    //@property Vector start()
-    //{
-    //    if (parent is null)
-    //        return Vector.center;
-    //    else
-    //        return parent.end;
-    //}
-
-    //@property Vector end()
-    //{
-    //    if (parent is null)
-    //        return Vector.center;
-    //    else
-    //        return start + Vector(length * cos(angle), length * sin(angle));
-    //}
-
-    this(Parameters params = maxParams, Neuron parent = null, int level = 0, int parentIndex = 0, float parentAngle = 0)
+    @property Vector2f end()
     {
-        this.params = params;
+        if (parent is null)
+            return Vector2f.init;
+        else
+            return start + fromPolar(params.xTotal, angle);
+    }
+
+    this(Neuron parent = null, int level = 0, int scalar = 0)
+    {
         this.parent = parent;
+        params = randomParams;
 
         r = params.rho / (PI * params.a ^^ 2);
         c = 2 * PI * params.a * params.cap;
-        float sectorSize = 0;
 
-        if (level) {
-            sectorSize = 2 * PI / (3 * level);
-            angle = parentAngle + parentIndex * sectorSize;
-        }
+        if (level == 0)
+            angle = 0;
+        else if (level == 1)
+            angle = scalar * 2 * PI / 3;
+        else
+            angle = parent.angle + scalar * PI / (2 + level);
 
         if (level > 2)
             return;
 
-        foreach (i; 0..3)
-            connected ~= new Neuron(maxParams, this, level + 1, i, angle - sectorSize / 2);
+        foreach (i; -1..2)
+            connected ~= new Neuron(this, level + 1, i);
     }
 
     float[][] impulse(float v0, size_t segX = 50, float temp = 6.3)
@@ -135,4 +132,14 @@ class Neuron
         foreach (subneuron; connected)
             subneuron.destroy;
     }
+}
+
+void rebuildNetwork()
+{
+    Neuron.root = new Neuron;
+}
+
+shared static this()
+{
+    subscribe("rebuildNetwork", toDelegate(&rebuildNetwork));
 }

@@ -1,8 +1,14 @@
 public import std.stdio: writeln;
-import Dgame.System.Font;
-import Dgame.Graphic.Text;
-import Dgame.Graphic.Color;
+import Dgame.System;
+import Dgame.Graphic;
+import Dgame.Math;
 import std.typecons: Tuple;
+import std.math: sin, cos;
+
+Vector2f fromPolar(float length, float angle)
+{
+    return Vector2f(length * cos(angle), length * sin(angle));
+}
 
 void refineText(Text text)
 {

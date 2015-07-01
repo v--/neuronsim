@@ -4,7 +4,6 @@ import Dgame.Graphic;
 import Dgame.Math;
 import subscribed.pubsub;
 import derelict.sdl2.ttf;
-import drawable;
 import input;
 
 shared static this()
@@ -22,12 +21,9 @@ void main()
     auto icon = Surface("res/icon.png");
     auto font = Font("res/liberation.ttf", 20);
     auto flags = Window.Style.Resizeable | Window.Style.Maximized;
-    auto glSettings = GLContextSettings(GLContextSettings.AntiAlias.X4);
+    auto glSettings = GLContextSettings(GLContextSettings.AntiAlias.X8);
     auto window = Window(800, 600, "Neural simulation", flags, glSettings);
     Event event;
-
-    window.setIcon(icon);
-    window.setClearColor(Color4b.Black);
 
     void redraw()
     {
@@ -38,6 +34,9 @@ void main()
     }
 
     subscribe("redraw", &redraw);
+    window.setIcon(icon);
+    window.setClearColor(Color4b.Black);
+    publish("rebuildNetwork");
 
     while (true)
     {

@@ -29,16 +29,18 @@ void main()
     {
         resizeProjection(&window);
         window.clear;
+        publish("prerender", &window, &font);
         publish("render", &window, &font);
         window.display;
     }
 
-    subscribe("redraw", &redraw);
-    window.setIcon(icon);
-    window.setClearColor(Color4b.Black);
-    publish("rebuildNetwork");
+    void simulate()
+    {
+        publish("simulate", &window, &font);
+        publish("showInfo", "Bla");
+    }
 
-    while (true)
+    void handleEvent()
     {
         if (window.poll(&event))
         {
@@ -49,11 +51,24 @@ void main()
                 publish("keyChange", event.keyboard.key);
         }
     }
+
+    subscribe("_simulate", &simulate);
+    subscribe("redraw", &redraw);
+    subscribe("handleEvent", &handleEvent);
+    window.setIcon(icon);
+    window.setClearColor(Color4b.Black);
+    publish("rebuildNetwork");
+
+    while (true)
+    {
+        Thread.sleep(dur!"msecs"(5));
+        handleEvent;
+    }
 }
 
 void resizeProjection(Window* window)
 {
-    import derelict.opengl3.gl;
+    import derelict.opengl3.gl: glViewport;
     auto size = window.getSize;
     auto rect = Rect(0, 0, size.width, size.height);
     window.projection = window.projection.init;

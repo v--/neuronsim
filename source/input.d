@@ -11,6 +11,7 @@ private
 {
     alias Key = Keyboard.Key;
     bool awaitingInput;
+    bool blockedInput;
     enum string messageBase = "Please enter a new voltage value:";
     short v0buffer = 0;
 }
@@ -18,26 +19,55 @@ private
 shared static this()
 {
     subscribe("keyChange", toDelegate(&handleKeyEvent));
+    subscribe("blockInput", toDelegate(&blockInput));
 }
 
 void handleKeyEvent(Key key)
 {
-    import derelict.sdl2.sdl;
+    import derelict.sdl2.sdl: SDL_GetKeyName;
 
     switch (key)
     {
-        case Key.R: resetInput; publish("rebuildNetwork"); break;
-        case Key.V: startChangeVoltage; break;
-        case Key.H: resetInput; publish("toggleHelp"); publish("redraw"); return;
-        case Key.Escape: exit(0); break;
-        case Key.Return: endChangeVoltage; break;
-        //case Key.Space: awaitingInput = false; simulate; break;
+        case Key.R:
+            resetInput;
+            publish("rebuildNetwork");
+            break;
+
+        case Key.V:
+            if (!blockedInput)
+                startChangeVoltage;
+            break;
+
+        case Key.H:
+            resetInput;
+            publish("toggleHelp");
+            publish("redraw");
+            return;
+
+        case Key.Escape:
+            exit(0);
+            break;
+
+        case Key.Return:
+            if (!blockedInput)
+                endChangeVoltage;
+            break;
+
+        case Key.Space:
+            if (!blockedInput)
+            {
+                resetInput;
+                publish("_simulate");
+            }
+            return;
+
         case Key.Num0, Key.Num1, Key.Num2, Key.Num3, Key.Num4, Key.Num5,
              Key.Num6, Key.Num7, Key.Num8, Key.Num9, Key.Minus, Key.Backspace:
-                 onInput(*SDL_GetKeyName(key));
-                 return;
+                 if (!blockedInput)
+                     onInput(*SDL_GetKeyName(key));
+                 break;
 
-        default: break;
+        default: return;
     }
 
     publish("hideHelp");
@@ -46,9 +76,12 @@ void handleKeyEvent(Key key)
 
 void resetInput()
 {
+    if (!awaitingInput)
+        return;
+
+    publish("hideInfo");
     awaitingInput = false;
     v0buffer = 0;
-    publish("hideInfo");
 }
 
 void onInput(char symbol)
@@ -91,10 +124,14 @@ void endChangeVoltage()
         awaitingInput = false;
         Impulse.defaultv0 = v0buffer;
         v0buffer = 0;
-        //Impulse.root.destroy;
-        //Impulse.root = new Impulse(Neuron.root);
+        publish("rebuildImpulse");
     }
 
     publish("hideInfo");
     publish("redraw");
+}
+
+void blockInput(bool state)
+{
+    blockedInput = state;
 }

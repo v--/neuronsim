@@ -12,7 +12,7 @@ private
 {
     bool state;
 
-    static enum help = [
+    static immutable enum help = [
         "Esc":         "Quit",
         "Space":       "Launch an impulse simulation",
         "Backspace":   "Delete numbers while editing the initial voltage",
@@ -40,9 +40,9 @@ void renderHelp(Window* window, Font* font)
     if (!state)
         return;
 
-    drawBlocker(window, font);
+    drawBlocker(window);
     const size = window.getSize;
-    const offsetLeft = size.width / 2 - 200;
+    const offsetLeft = size.width / 2 - 250;
     auto offsetTop = size.height / 2 - 150;
 
     foreach (keyStr, labelStr; help)
@@ -59,7 +59,7 @@ void renderHelp(Window* window, Font* font)
     }
 }
 
-void drawBlocker(Window* window, Font* font)
+void drawBlocker(Window* window)
 {
     auto size = window.getSize;
 

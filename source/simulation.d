@@ -1,101 +1,113 @@
-//import core.thread: Fiber, Thread, dur;
-//import std.algorithm: find;
-//import std.container;
-//import std.conv: to;
-//import textures;
-//import helpers;
-//import impulse;
-//import neuron;
-//import vector;
-//import sdl;
+module simulation;
+import Dgame.System;
+import Dgame.Window: Window;
+import Dgame.Graphic;
+import Dgame.Math;
+import core.thread: Thread, dur;
+import std.algorithm: reverse;
+import std.typecons: scoped;
+import std.conv: to;
+import subscribed.event;
+import subscribed.pubsub;
+import helpers;
+import impulse;
+import neuron;
 
-//private
-//{
-//    Linscale!float scale;
-//    DList!Fiber fibers;
+private VoidEvent event;
+alias delegType = void delegate(Impulse, int);
 
-//    Fiber genFiber(Impulse impulse)
-//    {
-//        void func()
-//        {
-//            simulateImpulse(impulse);
-//        }
+shared static this()
+{
+    subscribe("simulate", toDelegate(&simulate));
+    subscribe("prerender", toDelegate(&cancelSimulation));
+    event = new VoidEvent;
+}
 
-//        return new Fiber(&func);
-//    }
-//}
+void cancelSimulation(Window* window, Font* font)
+{
+    while (event.subscribers.length)
+        event.pop;
+}
 
-//void drawNeuron(Neuron neuron = Neuron.root)
-//{
-//    network.resetColor;
-//    network.drawLine(neuron.start, neuron.length, neuron.angle);
-//    network.drawDisk(neuron.end);
+void addToEvent(delegType func, Impulse impulse, int rowNumber)
+{
+    void next()
+    {
+        func(impulse, rowNumber);
+    }
 
-//    foreach (subneuron; neuron.connected)
-//        drawNeuron(subneuron);
-//}
+    event ~= &next;
+}
 
-//void simulateImpulse(Impulse impulse)
-//{
-//    if (impulse.parent is null) {
-//        auto scaled = to!ubyte(scale(impulse.v0));
+void simulate(Window* window, Font* font)
+{
+    auto pointScale = genPointScale(window);
 
-//        network.setPurple(scaled);
-//        network.drawDisk(impulse.neuron.end);
-//        Fiber.yield;
+    auto redScale = genLinscale!(float, ubyte)(
+        0, Impulse.root.v0,
+        255, 50
+    );
 
-//        foreach (child; impulse.connected) {
-//            fibers ~= genFiber(child);
-//        }
+    void pause()
+    {
+        publish("handleEvent");
+        window.display;
+        StopWatch.wait(10);
+        publish("handleEvent");
+    }
 
-//        return;
-//    }
+    void simulateRow(Impulse impulse, int rowNumber)
+    {
+        if (event.subscribers.length)
+            event.shift;
 
-//    auto neuron = impulse.neuron;
+        auto greenScale = genLinscale!(float, ubyte)(
+            0, impulse.v0,
+            255, 50
+        );
 
-//    foreach (int j, row; impulse.matrix) {
-//        auto start = neuron.start + Vector.fromPolar(10, neuron.angle);
-//        auto length = (neuron.params.xTotal * screen.y / 5 - 20) / (segX - 1);
-//        auto step = Vector.fromPolar(length, neuron.angle);
+        auto neuron = impulse.neuron;
+        auto row = impulse.matrix[rowNumber];
+        auto rowLength = cast(float)row.length;
 
-//        foreach (int i, number; row) {
-//            auto scaled = to!ubyte(scale(number));
-//            //setnetwork.Purple(scaled);
-//            network.setPurple(255);
-//            network.drawLine(start, length, neuron.angle);
-//            start += step;
-//        }
+        auto start = pointScale(neuron.start);
+        auto step = neuron.point(1 / rowLength).pointScale -
+                    fromPolar(20, neuron.angle) / rowLength - start;
 
-//        Fiber.yield;
-//    }
+        window.drawCircle(
+            start,
+            Color4b(redScale(row[0]), greenScale(row[0]), 200)
+        );
 
-//    auto scaled = to!ubyte(scale(impulse.v0));
+        start += fromPolar(10, neuron.angle);
 
-//    network.setPurple(scaled);
-//    network.drawDisk(neuron.end);
-//    //redraw;
+        foreach (int i, number; row)
+        {
+            auto end = start + step;
+            window.drawLine(
+                start, end,
+                Color4b(redScale(number), greenScale(number), 200)
+            );
+            start = end;
+        }
 
-//    foreach (child; impulse.connected) {
-//        fibers ~= genFiber(child);
-//    }
-//}
+        window.drawCircle(
+            pointScale(neuron.end),
+            Color4b(redScale(row[$ - 1]), greenScale(row[$ - 1]), 200)
+        );
 
-//void runSimulation()
-//{
-//    scale = linscale([0, Impulse.root.peak], [48f, 255f]);
-//    fibers ~= genFiber(Impulse.root);
+        pause;
 
-//    while (true) {
-//        auto terminated = find!(f => f.state != Fiber.State.HOLD)(fibers[]);
-//        fibers.remove(terminated);
+        if (rowNumber + 1 < impulse.matrix.length)
+            addToEvent(&simulateRow, impulse, rowNumber + 1);
+        else
+            foreach (child; impulse.connected)
+                addToEvent(&simulateRow, child, 0);
+    }
 
-//        if (fibers.empty)
-//            break;
+    foreach (child; Impulse.root.connected)
+        addToEvent(&simulateRow, child, 0);
 
-//        foreach (fiber; fibers)
-//            fiber.call;
-
-//        handlePause;
-//        //redraw;
-//    }
-//}
+    while (event.subscribers.length)
+        event();
+}

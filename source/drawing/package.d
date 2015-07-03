@@ -1,3 +1,4 @@
+module drawing;
 import std.functional: toDelegate;
 import subscribed.pubsub;
 import network;

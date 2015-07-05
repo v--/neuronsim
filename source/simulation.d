@@ -15,8 +15,7 @@ private
 {
     Event!(void delegate()) event;
     alias delegType = void delegate(Impulse, int, int, int);
-    //enum basePause = 30;
-    enum basePause = 0;
+    enum basePause = 30;
     bool simulating;
 }
 
@@ -137,7 +136,7 @@ void simulate(Window* window, Font* font)
     foreach (f; result)
         message ~= abcScale(f) + 48;
 
-    writeln(message);
+    debug writeln(message);
     publish!"showInfo"(message);
     publish!"redraw";
 

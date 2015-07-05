@@ -1,13 +1,10 @@
 {
     "name": "neurons",
-    "description": "A minimal D application.",
-    "copyright": "Copyright © 2015, ianis",
+    "description": "A Hodgkin-Huxley model visualization for a neural tree",
+    "copyright": "Copyright © 2015, Ianis G. Vasilev",
     "authors": ["ianis"],
     "dependencies": {
         "dgame": "~>0.6.0",
         "subscribed": "~>1.1.1"
-    },
-    "libs": [
-        "SDL2"
-    ]
+    }
 }

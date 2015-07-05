@@ -1,8 +1,8 @@
 # Biological neural network simulation
 
-TODO: Documentation
+__TODO__: Documentation
 
-Believe me, you wouldn't understand anything without documentation
+Don't download. Believe me, you wouldn't understand anything without documentation
 
 Future notes:
 

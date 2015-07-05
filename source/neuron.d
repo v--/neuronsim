@@ -1,18 +1,17 @@
 import Dgame.Math;
 import std.random: uniform;
 import std.math: floor, exp, sin, cos, PI;
-import std.functional: toDelegate;
 import std.algorithm: min;
 import std.conv: to;
-import subscribed.pubsub;
 import parameters;
 import helpers;
+import events;
 
 private
 {
-    alias ChannelFunc = float function(float);
+    alias FloatFunc = pure float function(float);
 
-    mixin template Channel(ChannelFunc A, ChannelFunc B)
+    mixin template Channel(FloatFunc A, FloatFunc B)
     {
         float zero(float voltage)
         {
@@ -43,7 +42,7 @@ private
 
 class Neuron
 {
-    static float calcTempFactor(float temp) { return 3 ^^ ((6.3 - temp) / 10); }
+    static FloatFunc calcTempFactor = temp => 3 ^^ ((6.3 - temp) / 10);
     static Neuron root;
 
     Neuron parent;
@@ -89,11 +88,12 @@ class Neuron
             connected ~= new Neuron(this, level + 1, i);
     }
 
-    float[][] impulse(float v0, size_t segX = 10, float temp = 6.3)
+    float[][] impulse(float v0, size_t segX = 25, float temp = 6.3)
     {
         immutable tempFactor = calcTempFactor(temp),
                   deltaX = params.xTotal / segX,
-                  deltaT = min((r * c * deltaX ^^ 2) / 3, 1e-3);
+                  deltaT = min((r * c * deltaX ^^ 2) / 3, 1e-3),
+                  treshold = min(50, v0 / 3);
 
         float[][] impulse;
 
@@ -105,19 +105,19 @@ class Neuron
         oldV.length = oldM.length = oldH.length = oldN.length =
         newV.length = newM.length = newH.length = newN.length = segX + 3;
 
-        newV[segX / 4..$] = 0;
-        newV[0..segX / 4] = v0;
         newM[] = m.zero(0);
         newH[] = h.zero(0);
         newN[] = n.zero(0);
+        newV[segX / 4..$] = 0;
+        newV[0..segX / 4] = v0;
 
-        foreach (j; 0..10_000) {
+        foreach (j; 0..5_000) {
             auto extent = newV.extent;
 
             if (j * deltaT % 0.1 < 1e-3)
-                impulse ~= newV[1..$ - 1];
+                impulse ~= newV[1..$ - 1].dup;
 
-            if (extent.max - extent.min < 0.5 * v0)
+            if (extent.max - extent.min < treshold)
                 break;
 
             swap(oldM, newM);
@@ -161,10 +161,10 @@ void rebuildNetwork()
         Neuron.root.destroy;
 
     Neuron.root = new Neuron;
-    publish("rebuildImpulse");
+    publish!"rebuildImpulse";
 }
 
 shared static this()
 {
-    subscribe("rebuildNetwork", toDelegate(&rebuildNetwork));
+    subscribe!"rebuildNetwork"(&rebuildNetwork);
 }

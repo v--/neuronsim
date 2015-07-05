@@ -1,29 +1,8 @@
 module helpers;
 public import helpers.arrays;
 public import helpers.graphics;
+public import helpers.scales;
 debug public import std.stdio: writeln, writefln;
-
-alias Linscale(T, E) = E delegate(T);
-
-Linscale!(T, E) genLinscale(T, E)(T dMin, T dMax, E rMin, E rMax)
-{
-    T scalar = (rMax - rMin) / (dMax - dMin);
-
-    E scale(T input)
-    {
-        return cast(E)(rMin + scalar * (input - dMin));
-    }
-
-    return &scale;
-}
-
-unittest
-{
-    auto scale = genLinscale!(float, int)(0, 1, 0, 10);
-    assert(scale(0.5) == 5);
-    assert(scale(5) == 50);
-    assert(scale(-5) == -50);
-}
 
 void swap(T)(ref T a, ref T b)
 {

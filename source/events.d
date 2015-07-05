@@ -1,0 +1,20 @@
+import Dgame.System: Font;
+import Dgame.Window: Window;
+import Dgame.System.Keyboard: Keyboard;
+import subscribed;
+
+mixin PubSubChannel!("cancelSimulation");
+mixin PubSubChannel!("toggleHelp");
+mixin PubSubChannel!("hideHelp");
+mixin PubSubChannel!("rebuildImpulse");
+mixin PubSubChannel!("rebuildNetwork");
+mixin PubSubChannel!("hideInfo");
+mixin PubSubChannel!("handleEvent", void delegate());
+mixin PubSubChannel!("redraw", void delegate());
+mixin PubSubChannel!("keyChange", void function(Keyboard.Key, ref bool));
+mixin PubSubChannel!("render", void delegate(Window*, Font*));
+mixin PubSubChannel!("simulate", void function(Window*, Font*));
+mixin PubSubChannel!("showInfo", void function(string));
+mixin PubSubChannel!("prerender", void function(Window*, Font*));
+mixin PubSubChannel!("blockInput", void function(bool));
+mixin PubSubChannel!("renderInfo", void function(Window*, Font*));

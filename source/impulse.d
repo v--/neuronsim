@@ -1,8 +1,9 @@
 import std.math: floor, exp, sin, cos, PI;
 import std.random: uniform;
-import std.algorithm: max;
+import std.algorithm: min, max;
 import std.conv: to;
-import subscribed.pubsub;
+import Dgame.Graphic;
+import events;
 import helpers;
 import neuron;
 
@@ -10,11 +11,13 @@ enum int segX = 10;
 
 class Impulse
 {
-    static float defaultv0 = 100;
+    static float defaultv0 = 300;
     static Impulse root;
 
     float v0, endVoltage;
     float[][] matrix;
+    Extent!float extent;
+    Scale!(float, ubyte) colorScale;
 
     Neuron neuron;
     Impulse parent;
@@ -33,29 +36,35 @@ class Impulse
         return end.extent.max;
     }
 
-    @property float peak()
+    Color4b getColor(float number)
     {
-        float peak;
-
-        if (parent is null)
-            peak = v0;
-        else
-            peak = matrix.extent!float.max;
-
-        foreach (child; connected)
-            peak = max(peak, child.peak);
-
-        return max(peak, v0);
+        return Color4b(200, colorScale(number), 200);
     }
 
     this(Neuron neuron, float v0 = defaultv0, Impulse parent = null)
     {
-        publish("handleEvent");
+        publish!"handleEvent";
         this.neuron = neuron;
         this.v0 = v0;
         this.parent = parent;
-        matrix = neuron.impulse(v0, segX);
-        endVoltage = (parent is null) ? v0 : endPeak;
+
+        if (parent is null)
+        {
+            extent = Extent!float(v0, v0, 0, 0);
+            endVoltage = v0;
+        }
+
+        else
+        {
+            matrix = neuron.impulse(v0, segX);
+            endVoltage = endPeak;
+            extent = matrix.extent!float;
+
+            colorScale = genLinscale!(float, ubyte)(
+                extent.min, extent.max,
+                255, 0
+            );
+        }
 
         if (neuron.connected.length == 0 || endVoltage == 0)
             return;
@@ -79,20 +88,20 @@ class Impulse
 
 void rebuildImpulse()
 {
-    publish("showInfo", "Generating impulse...");
-    publish("redraw");
-    publish("blockInput", true);
+    publish!"showInfo"("Generating impulse...");
+    publish!"redraw";
+    publish!"blockInput"(true);
 
     if (Impulse.root !is null)
         Impulse.root.destroy;
 
     Impulse.root = new Impulse(Neuron.root);
-    publish("blockInput", false);
-    publish("hideInfo");
-    publish("redraw");
+    publish!"blockInput"(false);
+    publish!"hideInfo";
+    publish!"redraw";
 }
 
 shared static this()
 {
-    subscribe("rebuildImpulse", toDelegate(&rebuildImpulse));
+    subscribe!"rebuildImpulse"(&rebuildImpulse);
 }

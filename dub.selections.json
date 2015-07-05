@@ -3,7 +3,7 @@
 	"versions": {
 		"colorize": "1.0.5",
 		"derelict-fi": "2.0.1",
-		"subscribed": "1.0.1",
+		"subscribed": "1.1.0",
 		"logger": "0.3.3",
 		"derelict-enet": "2.0.0",
 		"std_event": "~master",
@@ -15,7 +15,7 @@
 		"matte": "0.1.0",
 		"derelict-util": "2.0.0",
 		"gfm": "2.3.11",
-		"dgame": "0.5.3",
+		"dgame": "0.6.0",
 		"derelict-assimp3": "1.0.1",
 		"derelict-gl3": "1.0.13"
 	}

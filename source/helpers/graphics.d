@@ -2,11 +2,12 @@ module helpers.graphics;
 import std.math: sin, cos;
 import std.algorithm: min;
 import std.typecons: scoped;
-import std.functional: toDelegate;
 import Dgame.Math;
 import Dgame.Graphic;
 import Dgame.System;
-import subscribed.pubsub;
+import events;
+
+alias PointScale = Vector2f delegate(Vector2f);
 
 PointScale pointScale;
 
@@ -15,17 +16,10 @@ void updateScale(Window* window, Font* font)
     pointScale = genPointScale(window);
 }
 
-shared static this()
-{
-    subscribe("prerender", toDelegate(&updateScale));
-}
-
 Vector2f fromPolar(float length, float angle)
 {
     return Vector2f(length * cos(angle), length * sin(angle));
 }
-
-alias PointScale = Vector2f delegate(Vector2f);
 
 Vertex toVertex(Vector2f vector)
 {
@@ -69,4 +63,9 @@ void refineText(Text text)
     text.foreground = Color4b.White;
     text.background = Color4b(0, 0, 0, 0);
     text.mode = Font.Mode.Shaded;
+}
+
+shared static this()
+{
+    subscribe!"prerender"(&updateScale);
 }

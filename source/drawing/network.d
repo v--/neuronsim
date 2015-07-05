@@ -3,11 +3,9 @@ import Dgame.System;
 import Dgame.Window;
 import Dgame.Graphic;
 import Dgame.Math;
-import subscribed.pubsub;
+import events;
 import helpers;
 import neuron;
-
-string message;
 
 void renderNetwork(Window* window, Font* font)
 {

@@ -1,11 +1,10 @@
 import Dgame.System.Keyboard;
-import std.functional: toDelegate;
 import std.c.stdlib: exit;
 import std.string: format;
 import std.conv: to;
-import subscribed;
 import impulse;
 import neuron;
+import events;
 
 private
 {
@@ -16,13 +15,7 @@ private
     short v0buffer = 0;
 }
 
-shared static this()
-{
-    subscribe("keyChange", toDelegate(&handleKeyEvent));
-    subscribe("blockInput", toDelegate(&blockInput));
-}
-
-void handleKeyEvent(Key key)
+void handleKeyEvent(Key key, ref bool simulate)
 {
     import derelict.sdl2.sdl: SDL_GetKeyName;
 
@@ -30,7 +23,8 @@ void handleKeyEvent(Key key)
     {
         case Key.R:
             resetInput;
-            publish("rebuildNetwork");
+            publish!"cancelSimulation";
+            publish!"rebuildNetwork";
             break;
 
         case Key.V:
@@ -40,8 +34,8 @@ void handleKeyEvent(Key key)
 
         case Key.H:
             resetInput;
-            publish("toggleHelp");
-            publish("redraw");
+            publish!"toggleHelp";
+            publish!"redraw";
             return;
 
         case Key.Escape:
@@ -57,7 +51,7 @@ void handleKeyEvent(Key key)
             if (!blockedInput)
             {
                 resetInput;
-                publish("_simulate");
+                simulate = true;
             }
             return;
 
@@ -70,8 +64,8 @@ void handleKeyEvent(Key key)
         default: return;
     }
 
-    publish("hideHelp");
-    publish("redraw");
+    publish!"hideHelp";
+    publish!"redraw";
 }
 
 void resetInput()
@@ -79,7 +73,7 @@ void resetInput()
     if (!awaitingInput)
         return;
 
-    publish("hideInfo");
+    publish!"hideInfo";
     awaitingInput = false;
     v0buffer = 0;
 }
@@ -106,15 +100,15 @@ void onInput(char symbol)
         catch (Exception e) {}
     }
 
-     publish("showInfo", "%s %dmv".format(messageBase, v0buffer));
-     publish("redraw");
+     publish!"showInfo"("%s %dmv".format(messageBase, v0buffer));
+     publish!"redraw";
 }
 
 void startChangeVoltage()
 {
     awaitingInput = true;
-    publish("showInfo", messageBase);
-    publish("redraw");
+    publish!"showInfo"( messageBase);
+    publish!"redraw";
 }
 
 void endChangeVoltage()
@@ -124,14 +118,20 @@ void endChangeVoltage()
         awaitingInput = false;
         Impulse.defaultv0 = v0buffer;
         v0buffer = 0;
-        publish("rebuildImpulse");
+        publish!"rebuildImpulse";
     }
 
-    publish("hideInfo");
-    publish("redraw");
+    publish!"hideInfo";
+    publish!"redraw";
 }
 
 void blockInput(bool state)
 {
     blockedInput = state;
+}
+
+shared static this()
+{
+    subscribe!"keyChange"(&handleKeyEvent);
+    subscribe!"blockInput"(&blockInput);
 }

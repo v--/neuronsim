@@ -2,9 +2,27 @@ import Dgame.System;
 import Dgame.Window;
 import Dgame.Graphic;
 import Dgame.Math;
-import subscribed.pubsub;
 import derelict.sdl2.ttf;
+import events;
 import input;
+
+// Catch segmentation faults
+debug private version (linux)
+{
+    alias sighandler_t = void function(int);
+    extern (C) sighandler_t signal(int signum, sighandler_t handler);
+
+    void handler(int i)
+    {
+        throw new Error("SEGV");
+    }
+
+    shared static this()
+    {
+        import core.sys.posix.signal: SIGSEGV;
+        signal(SIGSEGV, &handler);
+    }
+}
 
 shared static this()
 {
@@ -29,39 +47,37 @@ void main()
     {
         resizeProjection(&window);
         window.clear;
-        publish("prerender", &window, &font);
-        publish("render", &window, &font);
+        publish!"prerender"(&window, &font);
+        publish!"render"(&window, &font);
         window.display;
-    }
-
-    void simulate()
-    {
-        publish("simulate", &window, &font);
-        publish("showInfo", "Bla");
     }
 
     void handleEvent()
     {
+        bool simulate;
+
         if (window.poll(&event))
         {
             if (event.window.event == WindowEvent.Type.Resized || event.window.event == WindowEvent.Type.Exposed)
                 redraw;
 
             else if (event.type == Event.Type.KeyDown)
-                publish("keyChange", event.keyboard.key);
+                publish!"keyChange"(event.keyboard.key, simulate);
+
+            if (simulate)
+                publish!"simulate"(&window, &font);
         }
     }
 
-    subscribe("_simulate", &simulate);
-    subscribe("redraw", &redraw);
-    subscribe("handleEvent", &handleEvent);
+    subscribe!"redraw"(&redraw);
+    subscribe!"handleEvent"(&handleEvent);
     window.setIcon(icon);
     window.setClearColor(Color4b.Black);
-    publish("rebuildNetwork");
+    publish!"rebuildNetwork";
 
     while (true)
     {
-        Thread.sleep(dur!"msecs"(5));
+        StopWatch.wait(5);
         handleEvent;
     }
 }

@@ -4,15 +4,14 @@ import Dgame.Window;
 import Dgame.Graphic;
 import Dgame.Math;
 import std.typecons: scoped;
-import std.functional: toDelegate;
-import subscribed.pubsub;
+import events;
 import helpers;
 
 private
 {
     bool state;
 
-    static immutable enum help = [
+    enum help = [
         "Esc":         "Quit",
         "Space":       "Launch an impulse simulation",
         "Backspace":   "Delete numbers while editing the initial voltage",
@@ -22,12 +21,6 @@ private
         "R":           "Generate another network",
         "H":           "Display this help, then any key to hide it"
     ];
-}
-
-shared static this()
-{
-    subscribe("toggleHelp", toDelegate(&toggleHelp));
-    subscribe("hideHelp", toDelegate(&hideHelp));
 }
 
 void renderHelp(Window* window, Font* font)
@@ -84,4 +77,10 @@ void toggleHelp()
 void hideHelp()
 {
     state = false;
+}
+
+shared static this()
+{
+    subscribe!"toggleHelp"(&toggleHelp);
+    subscribe!"hideHelp"(&hideHelp);
 }

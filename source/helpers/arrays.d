@@ -82,3 +82,12 @@ unittest
     assert(compress([1, 2, 3, 4, 5], 5) == [1, 2, 3, 4, 5]);
     assert(compress([1, 2, 3, 4, 5], 3) == [1, 3, 5]);
 }
+
+bool hasTruth(bool[] array)
+{
+    foreach (element; array)
+        if (element)
+            return true;
+
+    return false;
+}

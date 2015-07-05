@@ -65,7 +65,7 @@ class Impulse
             );
         }
 
-        publish!"impulseLog"([v0, endVoltage, 6.3, 0, neuron.params.tupleof]);
+        publish!"impulseLog"([v0, endVoltage, 6.3, matrix.length / 10.0, neuron.params.tupleof]);
 
         if (neuron.connected.length == 0 || endVoltage == 0)
             return;

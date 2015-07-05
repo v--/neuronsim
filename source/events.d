@@ -9,6 +9,7 @@ mixin PubSubChannel!("hideHelp");
 mixin PubSubChannel!("rebuildImpulse");
 mixin PubSubChannel!("rebuildNetwork");
 mixin PubSubChannel!("hideInfo");
+mixin PubSubChannel!("impulseLog", void function(float[14]));
 mixin PubSubChannel!("handleEvent", void delegate());
 mixin PubSubChannel!("redraw", void delegate());
 mixin PubSubChannel!("keyChange", void function(Keyboard.Key, ref bool));

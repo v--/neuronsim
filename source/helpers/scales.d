@@ -1,5 +1,5 @@
 module helpers.scales;
-import std.math: pow;
+import std.math: sqrt;
 
 alias Scale(T, E) = E delegate(T);
 
@@ -21,4 +21,16 @@ unittest
     assert(scale(0.5) == 5);
     assert(scale(5) == 50);
     assert(scale(-5) == -50);
+}
+
+Scale!(T, E) genSqrtscale(T, E)(T dMin, T dMax, E rMin, E rMax)
+{
+    auto linscale = genLinscale(sqrt(dMin), sqrt(dMax), rMin, rMax);
+
+    E scale(T input)
+    {
+        return linscale(sqrt(input));
+    }
+
+    return &scale;
 }

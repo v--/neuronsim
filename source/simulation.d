@@ -15,7 +15,8 @@ private
 {
     Event!(void delegate()) event;
     alias delegType = void delegate(Impulse, int, int, int);
-    enum basePause = 30;
+    //enum basePause = 30;
+    enum basePause = 0;
     bool simulating;
 }
 
@@ -43,7 +44,7 @@ void simulate(Window* window, Font* font)
     event.clear;
     simulating = true;
     auto pointScale = genPointScale(window);
-    float[] result;
+    float[] output;
 
     void showText(string msg)
     {
@@ -114,10 +115,14 @@ void simulate(Window* window, Font* font)
                 addToEvent(&simulateRow, child, 0, i, level + 1);
         }
 
-        else
+        else if (impulse.endVoltage != 0)
         {
-            result ~= impulse.endVoltage;
-            showText("%d impulses have reached the end".format(result.length));
+            output ~= impulse.endVoltage;
+
+            if (output.length == 1)
+                showText("1 impulse has reached it's end");
+            else
+                showText("%d impulses have reached their end".format(output.length));
         }
     }
 
@@ -130,14 +135,13 @@ void simulate(Window* window, Font* font)
     if (!simulating)
         return;
 
-    auto abcScale = genLinscale(result.extent.min, result.extent.max, 1, 9);
+    auto abcScale = genSqrtscale(output.extent.min, output.extent.max, 0, 25);
     string message;
 
-    foreach (f; result)
-        message ~= abcScale(f) + 48;
+    foreach (f; output)
+        message ~= abcScale(f) + 65;
 
-    debug writeln(message);
-    publish!"showInfo"(message);
+    publish!"showInfo"("%d impulses say: %s".format(output.length, message));
     publish!"redraw";
 
     simulating = false;

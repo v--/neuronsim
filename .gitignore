@@ -1,5 +1,6 @@
 .dub
 docs.json
+results/*
 __dummy.html
 *.o
 *.obj

@@ -2,7 +2,8 @@ module helpers;
 public import helpers.arrays;
 public import helpers.graphics;
 public import helpers.scales;
-debug public import std.stdio: writeln, writefln;
+public import helpers.logger;
+import events;
 
 void swap(T)(ref T a, ref T b)
 {

@@ -26,7 +26,7 @@ private
 
     mixin Channel!(
         v => v != 25 ? 0.1 * (25 - v) / (exp((25 - v)/10) - 1) : 1,
-        v => 1 * exp(-v / 18)
+        v => 4 * exp(-v / 18)
     ) m;
 
     mixin Channel!(
@@ -108,10 +108,10 @@ class Neuron
         newM[] = m.zero(0);
         newH[] = h.zero(0);
         newN[] = n.zero(0);
-        newV[segX / 4..$] = 0;
         newV[0..segX / 4] = v0;
+        newV[segX / 4..$] = 0;
 
-        foreach (j; 0..5_000) {
+        foreach (j; 0..10_000) {
             auto extent = newV.extent;
 
             if (j * deltaT % 0.1 < 1e-3)

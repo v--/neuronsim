@@ -1,7 +1,6 @@
 import std.math: floor, exp, sin, cos, PI;
 import std.random: uniform;
 import std.algorithm: min, max;
-import std.conv: to;
 import Dgame.Graphic;
 import events;
 import helpers;
@@ -65,6 +64,8 @@ class Impulse
                 255, 0
             );
         }
+
+        publish!"impulseLog"([v0, endVoltage, 6.3, 0, neuron.params.tupleof]);
 
         if (neuron.connected.length == 0 || endVoltage == 0)
             return;

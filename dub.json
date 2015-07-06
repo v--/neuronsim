@@ -5,6 +5,6 @@
     "authors": ["ianis"],
     "dependencies": {
         "dgame": "~>0.6.0",
-        "subscribed": "~>1.1.1"
+        "subscribed": "~>1.1.0"
     }
 }

@@ -135,13 +135,13 @@ void simulate(Window* window, Font* font)
     if (!simulating)
         return;
 
-    auto abcScale = genSqrtscale(output.extent.min, output.extent.max, 0, 25);
+    auto abcScale = genLinscale(output.extent.min, output.extent.max, 0, 9);
     string message;
 
     foreach (f; output)
-        message ~= abcScale(f) + 65;
+        message ~= abcScale(f) + 48;
 
-    publish!"showInfo"("%d impulses say: %s".format(output.length, message));
+    publish!"showInfo"("%d impulses (in the range from 0 to 9): %s".format(output.length, message));
     publish!"redraw";
 
     simulating = false;

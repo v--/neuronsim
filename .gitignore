@@ -1,8 +1,7 @@
 .dub
 docs.json
-results/*
 __dummy.html
 *.o
 *.obj
-neurons
+/neurons
 __test__library__

@@ -1,10 +1,11 @@
 {
-    "name": "neurons",
-    "description": "A Hodgkin-Huxley model visualization for a neural tree",
-    "copyright": "Copyright © 2015, Ianis G. Vasilev",
-    "authors": ["ianis"],
-    "dependencies": {
-        "dgame": "~>0.6.0",
-        "subscribed": "~>1.1.0"
-    }
+	"authors": [
+		"Ianis Vasilev"
+	],
+	"dependencies": {
+		"gtk-d": "~>3.9.0"
+	},
+	"description": "A Hodgkin-Huxley model visualization for a small neural tree.",
+	"license": "Unlicense",
+	"name": "neurons"
 }

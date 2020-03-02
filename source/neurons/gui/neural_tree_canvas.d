@@ -33,7 +33,7 @@ class NeuralTreeCanvas : DrawingArea
             return currentTreeWrapper.tree;
         }
 
-        float maxVoltage()
+        double maxVoltage()
         {
             if (this.currentTree is null)
                 return 0;
@@ -42,7 +42,7 @@ class NeuralTreeCanvas : DrawingArea
         }
 
         // We need a function that decreases slow enough
-        float getColorIntensity(float voltage)
+        double getColorIntensity(double voltage)
         {
             import std.math : abs;
             return (1 - abs(voltage) / maxVoltage) ^^ 3;
@@ -55,7 +55,7 @@ class NeuralTreeCanvas : DrawingArea
             return animationStep < TREE_DEPTH * TOTAL_STEPS;
         }
 
-        void drawTail(Scoped!Context* context, float density, float colorIntensity, size_t centerX, size_t centerY)
+        void drawTail(Scoped!Context* context, double density, double colorIntensity, size_t centerX, size_t centerY)
         {
             import std.math : PI;
             context.setSourceRgb(1, colorIntensity, 1);
@@ -63,7 +63,7 @@ class NeuralTreeCanvas : DrawingArea
             context.fill();
         }
 
-        void drawAxon(Scoped!Context* context, float density, immutable ImpulseSimulation impulse, immutable ParameterSet params, float proportion, size_t startX, size_t startY, size_t endX, size_t endY)
+        void drawAxon(Scoped!Context* context, double density, immutable ImpulseSimulation impulse, immutable ParameterSet params, double proportion, size_t startX, size_t startY, size_t endX, size_t endY)
         {
             import std.math : PI;
             immutable voltageDistribution = impulse.getVoltageDistributionAt(proportion);
@@ -72,7 +72,7 @@ class NeuralTreeCanvas : DrawingArea
 
             foreach (i, voltage; voltageDistribution)
             {
-                immutable offset = cast(float)i / voltageDistribution.length;
+                immutable offset = cast(double)i / voltageDistribution.length;
                 immutable intensity = getColorIntensity(voltage);
                 pattern.addColorStopRgb(offset, 1, intensity, 1);
             }
@@ -84,13 +84,13 @@ class NeuralTreeCanvas : DrawingArea
             context.stroke();
         }
 
-        void drawTree(Scoped!Context* context, float density, immutable NeuralTreeSimulation tree, float cumProportion, float parentAngle, size_t centerX, size_t centerY)
+        void drawTree(Scoped!Context* context, double density, immutable NeuralTreeSimulation tree, double cumProportion, double parentAngle, size_t centerX, size_t centerY)
         {
             import std.conv : to;
             import std.math : PI, sin, cos;
             import std.algorithm : min, max;
 
-            immutable proportion = cast(float)animationStep / TOTAL_STEPS;
+            immutable proportion = cast(double)animationStep / TOTAL_STEPS;
             immutable newCumProportion = cumProportion + (tree.impulse is null ? 0 : tree.impulse.endProportion);
             immutable renderProportion = min(max(proportion - cumProportion, 0), 1);
 
@@ -113,13 +113,13 @@ class NeuralTreeCanvas : DrawingArea
             drawTail(context, density, colorIntensity, endX, endY);
         }
 
-        void drawRoot(Scoped!Context* context, float density, immutable NeuralTreeSimulation tree, size_t centerX, size_t centerY)
+        void drawRoot(Scoped!Context* context, double density, immutable NeuralTreeSimulation tree, size_t centerX, size_t centerY)
         {
             import std.conv : to;
             import std.math : PI, sin, cos;
             import std.algorithm : min, max;
 
-            immutable renderProportion = min(cast(float)animationStep / TOTAL_STEPS, 1);
+            immutable renderProportion = min(cast(double)animationStep / TOTAL_STEPS, 1);
             immutable childRotation = 2 * PI / TREE_ARITY;
 
             foreach (i, child; tree.children)

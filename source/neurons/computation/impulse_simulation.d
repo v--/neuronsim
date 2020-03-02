@@ -9,17 +9,17 @@ enum DELTA_T = 1e-2;
 
 immutable class ImpulseSimulation
 {
-    float minVoltage;
-    float maxVoltage;
-    float maxEndpointVoltage;
+    double minVoltage;
+    double maxVoltage;
+    double maxEndpointVoltage;
 
     private
     {
-        float[LENGTH_SUBDIVISION][MAX_MOMENTS] impulse;
+        double[LENGTH_SUBDIVISION][MAX_MOMENTS] impulse;
         size_t endIndex = MAX_INDEX;
     }
 
-    private this(float[LENGTH_SUBDIVISION][MAX_MOMENTS] impulse, size_t endIndex, float minVoltage, float maxVoltage, float maxEndpointVoltage)
+    private this(double[LENGTH_SUBDIVISION][MAX_MOMENTS] impulse, size_t endIndex, double minVoltage, double maxVoltage, double maxEndpointVoltage)
     {
         this.impulse = impulse;
         this.endIndex = endIndex;
@@ -28,7 +28,7 @@ immutable class ImpulseSimulation
         this.maxEndpointVoltage = maxEndpointVoltage;
     }
 
-    float[LENGTH_SUBDIVISION] getVoltageDistributionAt(float proportion) immutable
+    double[LENGTH_SUBDIVISION] getVoltageDistributionAt(double proportion) immutable
     in (proportion >= 0 && proportion <= 1)
     body
     {
@@ -36,12 +36,12 @@ immutable class ImpulseSimulation
         return impulse[to!int(proportion * MAX_INDEX)];
     }
 
-    float endProportion() immutable
+    double endProportion() immutable
     {
-        return cast(float)endIndex / MAX_INDEX;
+        return cast(double)endIndex / MAX_INDEX;
     }
 
-    float initialVoltage() immutable
+    double initialVoltage() immutable
     {
         return this.impulse[0][0];
     }
@@ -52,7 +52,7 @@ private
     import std.math : exp;
 
     // These are coefficient functions with no obvious interpretation
-    pure float sodiumOnA(float voltage)
+    pure double sodiumOnA(double voltage)
     {
         if (voltage == 25)
             return 1;
@@ -60,22 +60,22 @@ private
         return 0.1 * (25 - voltage) / (exp((25 - voltage) / 10) - 1);
     }
 
-    pure float sodiumOnB(float voltage)
+    pure double sodiumOnB(double voltage)
     {
         return 4 * exp(-voltage / 18);
     }
 
-    pure float sodiumOffA(float voltage)
+    pure double sodiumOffA(double voltage)
     {
         return 0.08 * exp(-voltage / 20);
     }
 
-    pure float sodiumOffB(float voltage)
+    pure double sodiumOffB(double voltage)
     {
         return 1 / (exp((30 - voltage) / 10) + 1);
     }
 
-    pure float potassiumOnA(float voltage)
+    pure double potassiumOnA(double voltage)
     {
         if (voltage == 10)
             return 0.1;
@@ -83,18 +83,18 @@ private
         return 0.01 * (10 - voltage) / (exp((10 - voltage) / 10) - 1);
     }
 
-    pure float potassiumOnB(float voltage)
+    pure double potassiumOnB(double voltage)
     {
         return 0.125 * exp(-voltage / 80);
     }
 }
 
-immutable(ImpulseSimulation) simulateImpulse(ParameterSet params, float initialVoltage)
+immutable(ImpulseSimulation) simulateImpulse(ParameterSet params, double initialVoltage)
 {
     import std.math : floor, exp, sin, cos, PI;
     import std.algorithm : min;
 
-    float[LENGTH_SUBDIVISION][MAX_MOMENTS] impulse;
+    double[LENGTH_SUBDIVISION][MAX_MOMENTS] impulse;
 
     immutable tempFactor = 3 ^^ ((6.3 - params.temperature) / 10);
     immutable unitResistance = params.cytoplasmResistivity / (PI * params.axonalLength ^^ 2);
@@ -102,7 +102,7 @@ immutable(ImpulseSimulation) simulateImpulse(ParameterSet params, float initialV
 
     immutable deltaX = params.axonalLength / LENGTH_SUBDIVISION;
 
-    float[LENGTH_SUBDIVISION + 2] voltage, sodiumOn, sodiumOff, potassiumOn;
+    double[LENGTH_SUBDIVISION + 2] voltage, sodiumOn, sodiumOff, potassiumOn;
 
     sodiumOn[] = sodiumOnA(0) / (sodiumOnA(0) + sodiumOnB(0));
     sodiumOff[] = sodiumOffA(0) / (sodiumOffA(0) + sodiumOffB(0));
@@ -111,18 +111,18 @@ immutable(ImpulseSimulation) simulateImpulse(ParameterSet params, float initialV
     voltage[LENGTH_SUBDIVISION / 4..$] = 0;
 
     size_t endIndex;
-    float minVoltage = 0;
-    float maxVoltage = 0;
-    float maxEndpointVoltage = 0;
+    double minVoltage = 0;
+    double maxVoltage = 0;
+    double maxEndpointVoltage = 0;
 
     foreach (j; 0..impulse.length)
     {
-        float minNewV = 0;
-        float maxNewV = 0;
+        double minNewV = 0;
+        double maxNewV = 0;
 
         impulse[j] = voltage[1..$ - 1].dup;
 
-        float[LENGTH_SUBDIVISION + 2] newVoltage, newSodiumOn, newSodiumOff, newPotassiumOn;
+        double[LENGTH_SUBDIVISION + 2] newVoltage, newSodiumOn, newSodiumOff, newPotassiumOn;
 
         foreach (i, v; voltage)
         {

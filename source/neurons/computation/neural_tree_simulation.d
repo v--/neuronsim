@@ -23,7 +23,7 @@ immutable class NeuralTreeSimulation
     }
 }
 
-immutable(NeuralTreeSimulation) simulateTree(immutable ParameterSet[] paramSets, float initialVoltage = float.nan, size_t depth = 0)
+immutable(NeuralTreeSimulation) simulateTree(immutable ParameterSet[] paramSets, double initialVoltage = double.nan, size_t depth = 0)
 {
     import std.math : isNaN;
     immutable params = paramSets[0];

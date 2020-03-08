@@ -1,16 +1,16 @@
-module neurons.app;
+module neuronsim.app;
 
 import gtk.Main;
 
-import neurons.computation.mutable_simulation_wrapper;
-import neurons.computation.neural_tree_simulation;
-import neurons.computation.simulation_config;
-import neurons.computation.simulation_generator;
-import neurons.computation.parameter_set;
+import neuronsim.sim.mutable_sim_wrapper;
+import neuronsim.sim.neural_tree_sim;
+import neuronsim.sim.sim_config;
+import neuronsim.sim.sim_generator;
+import neuronsim.sim.parameter_set;
 
-import neurons.gui.control_box;
-import neurons.gui.neural_tree_window;
-import neurons.gui.error_dialog;
+import neuronsim.gui.control_box;
+import neuronsim.gui.neural_tree_window;
+import neuronsim.gui.error_dialog;
 
 void main(string[] args)
 {
@@ -29,7 +29,7 @@ void main(string[] args)
         window.progressBar.pulse();
     }
 
-    void onGeneratorSuccess(MutableSimulationWrapper treeWrapper)
+    void onGeneratorSuccess(MutableSimWrapper treeWrapper)
     {
         window.progressBar.setFraction(0);
 
@@ -42,15 +42,15 @@ void main(string[] args)
         else
         {
             window.controlBox.setOverallSensitive(true);
-            window.canvas.updateSimulationWrapper(treeWrapper);
+            window.canvas.updateSimWrapper(treeWrapper);
         }
     }
 
-    auto generator = new SimulationGenerator(&onGeneratorPoll, &onGeneratorSuccess);
+    auto generator = new SimGenerator(&onGeneratorPoll, &onGeneratorSuccess);
 
-    void generateSimulation()
+    void generateSim()
     {
-        window.canvas.updateSimulationWrapper(null);
+        window.canvas.updateSimWrapper(null);
         window.controlBox.setOverallSensitive(false);
         generator.generate(window.controlBox.getValue());
     }
@@ -60,11 +60,11 @@ void main(string[] args)
         window.canvas.animate();
     }
 
-    window.controlBox.addOnGenerateClicked(box => generateSimulation());
+    window.controlBox.addOnGenerateClicked(box => generateSim());
     window.controlBox.addOnRunClicked(box => runAnimation());
     window.showAll();
 
-    generateSimulation();
+    generateSim();
 
     Main.run();
 }

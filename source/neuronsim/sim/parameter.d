@@ -1,4 +1,4 @@
-module neurons.computation.parameter;
+module neuronsim.sim.parameter;
 
 struct Parameter
 {

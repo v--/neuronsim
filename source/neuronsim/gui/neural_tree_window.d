@@ -1,12 +1,12 @@
-module neurons.gui.neural_tree_window;
+module neuronsim.gui.neural_tree_window;
 
 import gtk.MainWindow;
 import gtk.Paned;
 import gtk.ScrolledWindow;
 import gtk.ProgressBar;
 
-import neurons.gui.control_box;
-import neurons.gui.neural_tree_canvas;
+import neuronsim.gui.control_box;
+import neuronsim.gui.neural_tree_canvas;
 
 class NeuralTreeWindow : MainWindow
 {
@@ -26,7 +26,7 @@ class NeuralTreeWindow : MainWindow
 
     this()
     {
-        super("neurons");
+        super("neuronsim");
 
         outerPaned = new Paned(Orientation.VERTICAL);
         add(outerPaned);

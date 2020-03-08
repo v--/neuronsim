@@ -1,6 +1,6 @@
-module neurons.computation.parameter_set;
+module neuronsim.sim.parameter_set;
 
-import neurons.computation.parameter : Parameter;
+import neuronsim.sim.parameter : Parameter;
 
 struct ParameterSet
 {

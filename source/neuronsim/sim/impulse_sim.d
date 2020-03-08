@@ -1,13 +1,13 @@
-module neurons.computation.impulse_simulation;
+module neuronsim.sim.impulse_sim;
 
-import neurons.computation.parameter_set;
+import neuronsim.sim.parameter_set;
 
 enum MAX_MOMENTS = 2500;
 enum MAX_INDEX = MAX_MOMENTS - 1;
 enum LENGTH_SUBDIVISION = 10;
 enum DELTA_T = 1e-2;
 
-immutable class ImpulseSimulation
+immutable class ImpulseSim
 {
     double minVoltage;
     double maxVoltage;
@@ -89,7 +89,7 @@ private
     }
 }
 
-immutable(ImpulseSimulation) simulateImpulse(immutable ParameterSet params, double initialVoltage)
+immutable(ImpulseSim) simulateImpulse(immutable ParameterSet params, double initialVoltage)
 {
     import std.math : floor, exp, sin, cos, PI;
     import std.algorithm : min;
@@ -165,5 +165,5 @@ immutable(ImpulseSimulation) simulateImpulse(immutable ParameterSet params, doub
         }
     }
 
-    return new immutable ImpulseSimulation(impulse, endIndex, minVoltage, maxVoltage, maxEndpointVoltage);
+    return new immutable ImpulseSim(impulse, endIndex, minVoltage, maxVoltage, maxEndpointVoltage);
 }

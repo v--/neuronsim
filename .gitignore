@@ -3,5 +3,5 @@ docs.json
 __dummy.html
 *.o
 *.obj
-/neurons
-neurons-test-library
+/neuronsim
+neuronsim-test-library

@@ -1,17 +1,17 @@
-module neurons.gui.control_box;
+module neuronsim.gui.control_box;
 
 import std.traits : fullyQualifiedName, getUDAs, getSymbolsByUDA;
 
 import gtk.Box;
 import gtk.Button;
 
-import neurons.computation.neural_tree_simulation;
-import neurons.computation.impulse_simulation;
-import neurons.computation.simulation_config;
-import neurons.computation.parameter_set;
-import neurons.computation.parameter;
+import neuronsim.sim.neural_tree_sim;
+import neuronsim.sim.impulse_sim;
+import neuronsim.sim.sim_config;
+import neuronsim.sim.parameter_set;
+import neuronsim.sim.parameter;
 
-import neurons.gui.control_widget;
+import neuronsim.gui.control_widget;
 
 private alias parameterSetMembers = getSymbolsByUDA!(ParameterSet, Parameter);
 
@@ -102,11 +102,11 @@ class ControlBox : Box
         return to!size_t(treeDepthControl.getValue());
     }
 
-    immutable(SimulationConfig) getValue()
+    immutable(SimConfig) getValue()
     {
         auto depth = getTreeDepth();
 
-        return new immutable SimulationConfig(
+        return new immutable SimConfig(
             getParamSets(countfullNaryTreeNodes(TREE_ARITY, depth)),
             getInitialVoltage(),
             depth

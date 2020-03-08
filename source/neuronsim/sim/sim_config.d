@@ -1,8 +1,8 @@
-module neurons.computation.simulation_config;
+module neuronsim.sim.sim_config;
 
-import neurons.computation.parameter_set : ParameterSet;
+import neuronsim.sim.parameter_set : ParameterSet;
 
-immutable class SimulationConfig
+immutable class SimConfig
 {
     ParameterSet[] paramSets;
     double initialVoltage;

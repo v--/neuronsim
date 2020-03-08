@@ -7,5 +7,5 @@
 	},
 	"description": "A Hodgkin-Huxley model visualization for a small neural tree.",
 	"license": "Unlicense",
-	"name": "neurons"
+	"name": "neuronsim"
 }

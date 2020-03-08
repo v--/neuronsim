@@ -1,8 +1,8 @@
-module neurons.computation.neural_tree_simulation;
+module neuronsim.sim.neural_tree_sim;
 
-import neurons.computation.parameter_set;
-import neurons.computation.simulation_config;
-import neurons.computation.impulse_simulation;
+import neuronsim.sim.parameter_set;
+import neuronsim.sim.sim_config;
+import neuronsim.sim.impulse_sim;
 
 enum TREE_ARITY = 3;
 
@@ -27,14 +27,14 @@ unittest
     assert(countfullNaryTreeNodes(3, 2) == 13);
 }
 
-immutable class NeuralTreeSimulation
+immutable class NeuralTreeSim
 {
     ParameterSet params;
-    ImpulseSimulation impulse;
-    NeuralTreeSimulation[] children;
+    ImpulseSim impulse;
+    NeuralTreeSim[] children;
     size_t depth;
 
-    private this(immutable ParameterSet params, immutable ImpulseSimulation impulse, immutable NeuralTreeSimulation[] children, size_t depth)
+    private this(immutable ParameterSet params, immutable ImpulseSim impulse, immutable NeuralTreeSim[] children, size_t depth)
     {
         this.params = params;
         this.impulse = impulse;
@@ -43,12 +43,12 @@ immutable class NeuralTreeSimulation
     }
 }
 
-immutable(NeuralTreeSimulation) simulateTree(immutable SimulationConfig config, size_t depth = 0)
+immutable(NeuralTreeSim) simulateTree(immutable SimConfig config, size_t depth = 0)
 {
     immutable params = config.paramSets[0];
 
-    immutable(NeuralTreeSimulation)[] children;
-    immutable ImpulseSimulation impulse = depth > 0 ? simulateImpulse(params, config.initialVoltage) : null;
+    immutable(NeuralTreeSim)[] children;
+    immutable ImpulseSim impulse = depth > 0 ? simulateImpulse(params, config.initialVoltage) : null;
     immutable endVoltage = impulse is null ? config.initialVoltage : impulse.maxEndpointVoltage;
 
     if (depth < config.treeDepth)
@@ -57,9 +57,9 @@ immutable(NeuralTreeSimulation) simulateTree(immutable SimulationConfig config, 
             immutable step = countfullNaryTreeNodes(TREE_ARITY, config.treeDepth - depth - 1);
             immutable start = 1 + step * i;
             immutable end = 1 + step * (i + 1);
-            immutable newConfig = new immutable SimulationConfig(config.paramSets[start..end], endVoltage, config.treeDepth);
+            immutable newConfig = new immutable SimConfig(config.paramSets[start..end], endVoltage, config.treeDepth);
             children ~= simulateTree(newConfig, depth + 1);
         }
 
-    return new immutable NeuralTreeSimulation(params, impulse, children.idup(), depth);
+    return new immutable NeuralTreeSim(params, impulse, children.idup(), depth);
 }

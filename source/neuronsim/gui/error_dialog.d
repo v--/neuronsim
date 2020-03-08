@@ -1,4 +1,4 @@
-module neurons.gui.error_dialog;
+module neuronsim.gui.error_dialog;
 
 import gtk.Window;
 import gtk.MessageDialog;

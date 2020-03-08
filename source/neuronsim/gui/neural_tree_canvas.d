@@ -1,4 +1,4 @@
-module neurons.gui.neural_tree_canvas;
+module neuronsim.gui.neural_tree_canvas;
 
 import gtk.DrawingArea;
 import gtk.Widget;
@@ -6,11 +6,11 @@ import glib.Timeout;
 import cairo.Context;
 import cairo.Pattern;
 
-import neurons.computation.parameter_set;
-import neurons.computation.impulse_simulation;
-import neurons.computation.simulation_config;
-import neurons.computation.neural_tree_simulation;
-import neurons.computation.mutable_simulation_wrapper;
+import neuronsim.sim.parameter_set;
+import neuronsim.sim.impulse_sim;
+import neuronsim.sim.sim_config;
+import neuronsim.sim.neural_tree_sim;
+import neuronsim.sim.mutable_sim_wrapper;
 
 class NeuralTreeCanvas : DrawingArea
 {
@@ -21,7 +21,7 @@ class NeuralTreeCanvas : DrawingArea
 
     private
     {
-        MutableSimulationWrapper wrapper;
+        MutableSimWrapper wrapper;
         size_t animationStep;
         Timeout timeout;
 
@@ -55,7 +55,7 @@ class NeuralTreeCanvas : DrawingArea
             context.fill();
         }
 
-        void drawAxon(Scoped!Context* context, double density, immutable ImpulseSimulation impulse, immutable ParameterSet params, double proportion, size_t startX, size_t startY, size_t endX, size_t endY)
+        void drawAxon(Scoped!Context* context, double density, immutable ImpulseSim impulse, immutable ParameterSet params, double proportion, size_t startX, size_t startY, size_t endX, size_t endY)
         {
             import std.math : PI;
             immutable voltageDistribution = impulse.getVoltageDistributionAt(proportion);
@@ -76,7 +76,7 @@ class NeuralTreeCanvas : DrawingArea
             context.stroke();
         }
 
-        void drawTree(Scoped!Context* context, double density, immutable NeuralTreeSimulation tree, double cumProportion, double parentAngle, size_t centerX, size_t centerY)
+        void drawTree(Scoped!Context* context, double density, immutable NeuralTreeSim tree, double cumProportion, double parentAngle, size_t centerX, size_t centerY)
         {
             import std.conv : to;
             import std.math : PI, sin, cos;
@@ -105,7 +105,7 @@ class NeuralTreeCanvas : DrawingArea
             drawTail(context, density, colorIntensity, endX, endY);
         }
 
-        void drawRoot(Scoped!Context* context, double density, immutable NeuralTreeSimulation tree, size_t centerX, size_t centerY)
+        void drawRoot(Scoped!Context* context, double density, immutable NeuralTreeSim tree, size_t centerX, size_t centerY)
         {
             import std.math : PI;
             import std.algorithm : min;
@@ -157,7 +157,7 @@ class NeuralTreeCanvas : DrawingArea
         addOnDraw(&onDraw);
     }
 
-    void updateSimulationWrapper(MutableSimulationWrapper treeWrapper)
+    void updateSimWrapper(MutableSimWrapper treeWrapper)
     {
         if (timeout)
             timeout.stop();

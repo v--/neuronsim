@@ -1,4 +1,4 @@
-module neurons.gui.control_widget;
+module neuronsim.gui.control_widget;
 
 import std.string : format;
 
@@ -10,7 +10,7 @@ import gtk.CheckButton;
 import gtk.Scale;
 import gtk.Separator;
 
-import neurons.computation.parameter;
+import neuronsim.sim.parameter;
 
 class ControlWidget : Box
 {

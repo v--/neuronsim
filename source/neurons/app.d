@@ -10,12 +10,19 @@ import neurons.computation.parameter_set;
 
 import neurons.gui.control_box;
 import neurons.gui.neural_tree_window;
+import neurons.gui.error_dialog;
 
 void main(string[] args)
 {
     Main.init(args);
 
     auto window = new NeuralTreeWindow();
+
+    void onErrorOKClicked(ErrorDialog dialog)
+    {
+        dialog.destroy();
+        window.controlBox.setGenerateButtonSensitive(true);
+    }
 
     void onGeneratorPoll()
     {
@@ -25,8 +32,18 @@ void main(string[] args)
     void onGeneratorSuccess(MutableSimulationWrapper treeWrapper)
     {
         window.progressBar.setFraction(0);
-        window.controlBox.setSensitive(true);
-        window.canvas.updateSimulationWrapper(treeWrapper);
+
+        if (treeWrapper.tree is null)
+        {
+            auto dialog = new ErrorDialog(window, "Could not generate the neuron tree");
+            dialog.addOnOKResponse(&onErrorOKClicked);
+            dialog.run();
+        }
+        else
+        {
+            window.controlBox.setOverallSensitive(true);
+            window.canvas.updateSimulationWrapper(treeWrapper);
+        }
     }
 
     auto generator = new SimulationGenerator(&onGeneratorPoll, &onGeneratorSuccess);
@@ -34,7 +51,7 @@ void main(string[] args)
     void generateSimulation()
     {
         window.canvas.updateSimulationWrapper(null);
-        window.controlBox.setSensitive(false);
+        window.controlBox.setOverallSensitive(false);
         generator.generate(window.controlBox.getValue());
     }
 

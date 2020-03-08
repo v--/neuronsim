@@ -113,7 +113,7 @@ class ControlBox : Box
         );
     }
 
-    override void setSensitive(bool sensitive)
+    void setOverallSensitive(bool sensitive)
     {
         generateButton.setSensitive(sensitive);
         runButton.setSensitive(sensitive);
@@ -123,5 +123,10 @@ class ControlBox : Box
 
         static foreach (i, member; parameterSetMembers)
             controls[i].setSensitive(sensitive);
+    }
+
+    void setGenerateButtonSensitive(bool sensitive)
+    {
+        generateButton.setSensitive(sensitive);
     }
 }

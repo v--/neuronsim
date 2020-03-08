@@ -3,18 +3,28 @@ module neurons.computation.simulation_generator;
 import gtk.Main;
 import glib.Timeout;
 
+import std.stdio: stderr;
 import std.concurrency: Tid, thisTid, spawn, send, receiveTimeout;
 
-import neurons.computation.neural_tree_simulation_wrapper;
+import neurons.computation.mutable_simulation_wrapper;
 import neurons.computation.neural_tree_simulation;
 import neurons.computation.parameter_set;
+import neurons.computation.simulation_config;
 
 import core.time;
 
-void work(Tid returnTid, immutable ParameterSet[] paramSets)
+void work(Tid returnTid, immutable SimulationConfig config)
 {
-    immutable newTree = simulateTree(paramSets);
-    send(returnTid, newTree);
+    try
+    {
+        immutable tree = simulateTree(config);
+        send(returnTid, tree);
+    }
+    catch (Throwable err)
+    {
+        stderr.write(err);
+        send(returnTid, cast(immutable NeuralTreeSimulation)null);
+    }
 }
 
 class SimulationGenerator
@@ -26,13 +36,13 @@ class SimulationGenerator
     {
         Tid worker;
         Timeout timeout;
-        NeuralTreeSimulationWrapper treeWrapper;
+        MutableSimulationWrapper treeWrapper;
 
         void delegate() onPoll;
-        void delegate(NeuralTreeSimulationWrapper) onSuccess;
+        void delegate(MutableSimulationWrapper) onSuccess;
     }
 
-    this(void delegate() onPoll, void delegate(NeuralTreeSimulationWrapper) onSuccess)
+    this(void delegate() onPoll, void delegate(MutableSimulationWrapper) onSuccess)
     {
         this.onPoll = onPoll;
         this.onSuccess = onSuccess;
@@ -40,19 +50,15 @@ class SimulationGenerator
 
     void onMessage(immutable NeuralTreeSimulation tree)
     {
-        treeWrapper = new NeuralTreeSimulationWrapper(tree);
+        treeWrapper = new MutableSimulationWrapper(treeWrapper.config, tree);
         onSuccess(treeWrapper);
     }
 
-    void generate(immutable ParameterSet[] paramSets)
+    void generate(immutable SimulationConfig config)
     {
-        if (treeWrapper !is null)
-            treeWrapper.tree.destroy();
+        treeWrapper = new MutableSimulationWrapper(config, null);
 
-        treeWrapper.destroy();
-        treeWrapper = null;
-
-        worker = spawn(&work, thisTid(), paramSets);
+        worker = spawn(&work, thisTid(), config);
         timeout = new Timeout(POLL_INTERVAL, {
             onPoll();
             return !receiveTimeout(dur!"msecs"(POLL_DURATION), &onMessage);

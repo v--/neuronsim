@@ -2,24 +2,14 @@ module neurons.app;
 
 import gtk.Main;
 
-import neurons.computation.neural_tree_simulation_wrapper;
+import neurons.computation.mutable_simulation_wrapper;
 import neurons.computation.neural_tree_simulation;
+import neurons.computation.simulation_config;
 import neurons.computation.simulation_generator;
 import neurons.computation.parameter_set;
 
 import neurons.gui.control_box;
 import neurons.gui.neural_tree_window;
-
-immutable(ParameterSet[]) createParamSet(ControlBox controlBox)
-{
-    import std.range : front, popFront, empty, generate, take;
-    import std.array : array;
-
-    return generate(&controlBox.getValue)
-        .take(TREE_SIZE)
-        .array()
-        .idup();
-}
 
 void main(string[] args)
 {
@@ -32,10 +22,10 @@ void main(string[] args)
         window.progressBar.pulse();
     }
 
-    void onGeneratorSuccess(NeuralTreeSimulationWrapper treeWrapper)
+    void onGeneratorSuccess(MutableSimulationWrapper treeWrapper)
     {
-        window.controlBox.setSensitive(true);
         window.progressBar.setFraction(0);
+        window.controlBox.setSensitive(true);
         window.canvas.updateSimulationWrapper(treeWrapper);
     }
 
@@ -45,7 +35,7 @@ void main(string[] args)
     {
         window.canvas.updateSimulationWrapper(null);
         window.controlBox.setSensitive(false);
-        generator.generate(createParamSet(window.controlBox));
+        generator.generate(window.controlBox.getValue());
     }
 
     void runAnimation()

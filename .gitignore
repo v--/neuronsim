@@ -4,4 +4,4 @@ __dummy.html
 *.o
 *.obj
 /neurons
-__test__library__
+neurons-test-library

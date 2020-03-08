@@ -4,9 +4,6 @@ import neurons.computation.parameter : Parameter;
 
 struct ParameterSet
 {
-    @Parameter("Initial voltage at root", "mV", 300.00, 200.00, 400.00)
-    double initialVoltage;
-
     @Parameter("Temperature", "C°", 18.50, 15.00, 20.00)
     double temperature;
 

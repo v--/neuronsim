@@ -8,37 +8,30 @@ import cairo.Pattern;
 
 import neurons.computation.parameter_set;
 import neurons.computation.impulse_simulation;
+import neurons.computation.simulation_config;
 import neurons.computation.neural_tree_simulation;
-import neurons.computation.neural_tree_simulation_wrapper;
+import neurons.computation.mutable_simulation_wrapper;
 
 class NeuralTreeCanvas : DrawingArea
 {
     enum FPS = 1000 / 30;
-    enum AXONAL_DISPLAY_UNIT_LENGTH = 35; // 1cm
+    enum MIN_SIZE = 600;
+    // 3 is the maximum axonal length
     enum NEURON_BODY_RADIUS = 5;
     enum TOTAL_STEPS = 50;
-    enum MIN_SIZE = 600;
 
     private
     {
-        NeuralTreeSimulationWrapper currentTreeWrapper;
+        MutableSimulationWrapper wrapper;
         size_t animationStep;
         Timeout timeout;
 
-        immutable(NeuralTreeSimulation) currentTree()
-        {
-            if (currentTreeWrapper is null)
-                return null;
-
-            return currentTreeWrapper.tree;
-        }
-
         double maxVoltage()
         {
-            if (this.currentTree is null)
+            if (this.wrapper is null)
                 return 0;
 
-            return this.currentTree.children[0].impulse.maxVoltage;
+            return this.wrapper.tree.children[0].impulse.maxVoltage;
         }
 
         // We need a function that decreases slow enough
@@ -52,7 +45,7 @@ class NeuralTreeCanvas : DrawingArea
         {
             queueDraw();
             animationStep += 1;
-            return animationStep < TREE_DEPTH * TOTAL_STEPS;
+            return animationStep < wrapper.config.treeDepth * TOTAL_STEPS;
         }
 
         void drawTail(Scoped!Context* context, double density, double colorIntensity, size_t centerX, size_t centerY)
@@ -94,7 +87,7 @@ class NeuralTreeCanvas : DrawingArea
             immutable newCumProportion = cumProportion + (tree.impulse is null ? 0 : tree.impulse.endProportion);
             immutable renderProportion = min(max(proportion - cumProportion, 0), 1);
 
-            immutable length = to!size_t(density * tree.params.axonalLength * AXONAL_DISPLAY_UNIT_LENGTH);
+            immutable length = to!size_t(density * tree.params.axonalLength * (MIN_SIZE - 25) / (3.00 /* 3cm is the max axonal length */ * 2 * wrapper.config.treeDepth));
             immutable endX = to!size_t(centerX + length * cos(parentAngle));
             immutable endY = to!size_t(centerY + length * sin(parentAngle));
 
@@ -115,9 +108,8 @@ class NeuralTreeCanvas : DrawingArea
 
         void drawRoot(Scoped!Context* context, double density, immutable NeuralTreeSimulation tree, size_t centerX, size_t centerY)
         {
-            import std.conv : to;
-            import std.math : PI, sin, cos;
-            import std.algorithm : min, max;
+            import std.math : PI;
+            import std.algorithm : min;
 
             immutable renderProportion = min(cast(double)animationStep / TOTAL_STEPS, 1);
             immutable childRotation = 2 * PI / TREE_ARITY;
@@ -140,7 +132,7 @@ class NeuralTreeCanvas : DrawingArea
             context.setSourceRgb(0, 0, 0);
             context.paint();
 
-            if (currentTree is null)
+            if (wrapper is null)
                 return;
 
             GtkAllocation size;
@@ -150,7 +142,7 @@ class NeuralTreeCanvas : DrawingArea
             immutable centerY = size.y + size.height / 2;
             immutable density = 0.9 * cast(double)min(size.width, size.height) / MIN_SIZE;
 
-            drawRoot(context, density, currentTree, centerX, centerY);
+            drawRoot(context, density, wrapper.tree, centerX, centerY);
         }
 
         bool onDraw(Scoped!Context context, Widget)
@@ -166,19 +158,19 @@ class NeuralTreeCanvas : DrawingArea
         addOnDraw(&onDraw);
     }
 
-    void updateSimulationWrapper(NeuralTreeSimulationWrapper treeWrapper)
+    void updateSimulationWrapper(MutableSimulationWrapper treeWrapper)
     {
         if (timeout)
             timeout.stop();
 
-        currentTreeWrapper = treeWrapper;
+        wrapper = treeWrapper;
         animationStep = 0;
         queueDraw();
     }
 
     void animate()
     {
-        if (currentTree is null)
+        if (wrapper is null)
             return;
 
         if (timeout)

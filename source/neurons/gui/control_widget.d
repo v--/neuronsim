@@ -23,6 +23,7 @@ class ControlWidget : Box
         CheckButton check;
         Scale scale;
         Separator separator;
+        bool allowRandomization;
 
         void onRandomizeToggled(ToggleButton button)
         {
@@ -30,10 +31,13 @@ class ControlWidget : Box
         }
     }
 
-    this(Parameter parameter)
+    this(Parameter parameter, bool allowRandomization = true)
     {
+        import std.math : isNaN;
+
         super(Orientation.VERTICAL, 0);
         this.parameter = parameter;
+        allowRandomization = allowRandomization;
 
         separator = new Separator(Orientation.HORIZONTAL);
         separator.setMarginBottom(10);
@@ -42,21 +46,28 @@ class ControlWidget : Box
         paned = new Paned(Orientation.HORIZONTAL);
         add(paned);
 
-        label = new Label("%s (%s)".format(parameter.name, parameter.unit));
+        immutable labelText = parameter.unit is null ? parameter.name : "%s (%s)".format(parameter.name, parameter.unit);
+        label = new Label(labelText);
         label.setXalign(0);
         paned.pack1(label, true, false);
 
         check = new CheckButton("Randomize");
-        check.setActive(true);
+        check.setActive(allowRandomization);
         check.addOnToggled(&onRandomizeToggled);
-        paned.pack2(check, false, false);
 
-        scale = new Scale(Orientation.HORIZONTAL, parameter.min, parameter.max, (parameter.max - parameter.min) / 100);
-        scale.addMark(parameter.mode, GtkPositionType.BOTTOM, "%.2f (mode)".format(parameter.mode));
-        scale.addMark(parameter.min, GtkPositionType.BOTTOM, "%.2f".format(parameter.min));
-        scale.addMark(parameter.max, GtkPositionType.BOTTOM, "%.2f".format(parameter.max));
+        if (allowRandomization)
+            paned.pack2(check, false, false);
+
+        immutable step = isNaN(parameter.step) ? (parameter.max - parameter.min) / 100 : parameter.step;
+        scale = new Scale(Orientation.HORIZONTAL, parameter.min, parameter.max, step);
+
+        if (allowRandomization)
+            scale.addMark(parameter.mode, GtkPositionType.BOTTOM, "%g (mode)".format(parameter.mode));
+
+        scale.addMark(parameter.min, GtkPositionType.BOTTOM, "%g".format(parameter.min));
+        scale.addMark(parameter.max, GtkPositionType.BOTTOM, "%g".format(parameter.max));
         scale.setValue(parameter.mode);
-        scale.setSensitive(false);
+        scale.setSensitive(!allowRandomization);
         add(scale);
     }
 

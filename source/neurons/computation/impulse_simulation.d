@@ -89,7 +89,7 @@ private
     }
 }
 
-immutable(ImpulseSimulation) simulateImpulse(ParameterSet params, double initialVoltage)
+immutable(ImpulseSimulation) simulateImpulse(immutable ParameterSet params, double initialVoltage)
 {
     import std.math : floor, exp, sin, cos, PI;
     import std.algorithm : min;

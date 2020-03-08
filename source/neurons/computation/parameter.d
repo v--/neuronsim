@@ -7,6 +7,7 @@ struct Parameter
     double mode;
     double min;
     double max;
+    double step = double.nan;
 
     // Simulate a triangular distribution
     double simulateTriangular()

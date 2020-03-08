@@ -3,7 +3,7 @@
 		"Ianis Vasilev"
 	],
 	"dependencies": {
-		"gtk-d": "~>3.9.0"
+		"gtk-d:gtkd": "~>3.9.0"
 	},
 	"description": "A Hodgkin-Huxley model visualization for a small neural tree.",
 	"license": "Unlicense",

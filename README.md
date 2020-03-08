@@ -4,7 +4,7 @@ This is a simulation of a biological neural network based on numeric solutions t
 
 It is based on chapters 2-4 and appendix B from the book [Neuroscience - A Mathematical Primer by Alwyn Scott](https://www.springer.com/gp/book/9780387954035).
 
-![Screenshot](./screenshot.png)
+![Screencast](./screencast.gif)
 
 ## Notes
 

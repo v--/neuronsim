@@ -16,7 +16,6 @@ class NeuralTreeCanvas : DrawingArea
 {
     enum FPS = 1000 / 30;
     enum MIN_SIZE = 600;
-    // 3 is the maximum axonal length
     enum NEURON_BODY_RADIUS = 5;
     enum TOTAL_STEPS = 50;
 

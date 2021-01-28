@@ -107,7 +107,7 @@ class ControlBox : Box
         auto depth = getTreeDepth();
 
         return new immutable SimConfig(
-            getParamSets(countfullNaryTreeNodes(TREE_ARITY, depth)),
+            getParamSets(countFullNaryTreeNodes(TREE_ARITY, depth)),
             getInitialVoltage(),
             depth
         );

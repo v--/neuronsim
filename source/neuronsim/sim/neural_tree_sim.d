@@ -6,25 +6,33 @@ import neuronsim.sim.impulse_sim;
 
 enum TREE_ARITY = 3;
 
-size_t countfullNaryTreeNodes(size_t arity, size_t depth)
+size_t countFullNaryTreeNodes(size_t arity, size_t depth)
 {
-    if (depth == 0)
+    if (arity == 0)
+        // Only the root, no depth is possible
         return 1;
 
-    return 1 + arity * countfullNaryTreeNodes(arity, depth - 1);
+    if (arity == 1)
+        // The root and {depth} other nodes
+        return depth + 1;
+
+    // Geometric progression: arity^^depth + arity^^{depth-1} + ... + 1
+    return (arity ^^ (depth + 1) - 1) / (arity - 1);
 }
 
 unittest
 {
-    assert(countfullNaryTreeNodes(1, 9) == 10);
+    // Degenerate cases
+    assert(countFullNaryTreeNodes(0, 9) == 1);
+    assert(countFullNaryTreeNodes(1, 9) == 10);
 
-    assert(countfullNaryTreeNodes(2, 0) == 1);
-    assert(countfullNaryTreeNodes(2, 1) == 3);
-    assert(countfullNaryTreeNodes(2, 2) == 7);
+    assert(countFullNaryTreeNodes(2, 0) == 1);
+    assert(countFullNaryTreeNodes(2, 1) == 3);
+    assert(countFullNaryTreeNodes(2, 2) == 7);
 
-    assert(countfullNaryTreeNodes(3, 0) == 1);
-    assert(countfullNaryTreeNodes(3, 1) == 4);
-    assert(countfullNaryTreeNodes(3, 2) == 13);
+    assert(countFullNaryTreeNodes(3, 0) == 1);
+    assert(countFullNaryTreeNodes(3, 1) == 4);
+    assert(countFullNaryTreeNodes(3, 2) == 13);
 }
 
 immutable class NeuralTreeSim
@@ -54,7 +62,7 @@ immutable(NeuralTreeSim) simulateTree(immutable SimConfig config, size_t depth =
     if (depth < config.treeDepth)
         foreach (i; 0..TREE_ARITY)
         {
-            immutable step = countfullNaryTreeNodes(TREE_ARITY, config.treeDepth - depth - 1);
+            immutable step = countFullNaryTreeNodes(TREE_ARITY, config.treeDepth - depth - 1);
             immutable start = 1 + step * i;
             immutable end = 1 + step * (i + 1);
             immutable newConfig = new immutable SimConfig(config.paramSets[start..end], endVoltage, config.treeDepth);

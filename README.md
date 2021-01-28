@@ -12,7 +12,7 @@ The easiest way to build the program is via [`dub`](https://dub.pm/). Either use
 
 ## Notes
 
-* The GUI itself is implemented using [GtkD](https://gtkd.org/). Because of this most of the code is somewhat object-oriented.
+* The GUI itself is implemented using [GtkD](https://gtkd.org/). Because of this, the GUI code is somewhat object-oriented, but not quite because it is simply a layer in front of a non-object-oriented simulation.
 
 * The naming is purposefully verbose so that the code is as clear as possible.
 

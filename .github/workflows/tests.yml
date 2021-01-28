@@ -1,0 +1,17 @@
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on:  ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: dlang-community/setup-dlang@v1
+      with:
+        compiler: ldc-latest
+
+    - name: Run unit tests
+      run: dub test --compiler=ldc2

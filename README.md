@@ -1,3 +1,5 @@
+[![Tests](https://github.com/v--/neuronsim/workflows/Tests/badge.svg)](https://github.com/v--/neuronsim/actions?query=workflow%3ATests) [![DUB Package](https://img.shields.io/dub/v/neuronsim.svg)](http://code.dlang.org/packages/neuronsim)
+
 # neuronsim
 
 This is a sim(ulation) of a biological neural network based on numeric solutions to the Hodgkin-Huxley equations.

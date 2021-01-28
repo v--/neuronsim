@@ -37,11 +37,11 @@ class ControlBox : Box
         setMarginLeft(15);
         setMarginTop(15);
 
+        runButton = new Button("Run simulation on generated tree");
+        add(runButton);
+
         generateButton = new Button("Generate new tree");
         add(generateButton);
-
-        runButton = new Button("Run simulation");
-        add(runButton);
 
         treeDepthControl = new ControlWidget(TREE_DEPTH_PARAMETER, false);
         add(treeDepthControl);

@@ -6,7 +6,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-latest]
         compiler: [dmd-latest, ldc-latest]
 
     runs-on:  ${{ matrix.os }}

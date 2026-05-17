@@ -38,7 +38,7 @@ immutable class ImpulseSim
 
     double endProportion() immutable
     {
-        return cast(double)endIndex / MAX_INDEX;
+        return cast(double)this.endIndex / MAX_INDEX;
     }
 
     double initialVoltage() immutable

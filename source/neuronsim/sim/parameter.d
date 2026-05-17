@@ -17,9 +17,9 @@ struct Parameter
 
         immutable r = uniform01();
 
-        if (r <= (mode - min) / (max - min))
-            return min + sqrt(r * (mode - min) * (max - min));
+        if (r <= (this.mode - this.min) / (this.max - this.min))
+            return this.min + sqrt(r * (this.mode - this.min) * (this.max - this.min));
 
-        return max - sqrt((1 - r) * (max - mode) * (max - min));
+        return this.max - sqrt((1 - r) * (this.max - this.mode) * (this.max - this.min));
     }
 }

@@ -12,9 +12,9 @@ jobs:
     runs-on:  ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v6
 
-    - uses: dlang-community/setup-dlang@v1
+    - uses: dlang-community/setup-dlang@v2
       with:
         compiler: ${{ matrix.compiler }}
 

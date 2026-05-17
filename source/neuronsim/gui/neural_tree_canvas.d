@@ -1,10 +1,14 @@
 module neuronsim.gui.neural_tree_canvas;
 
-import gtk.DrawingArea;
-import gtk.Widget;
-import glib.Timeout;
-import cairo.Context;
-import cairo.Pattern;
+import std.typecons : scoped;
+
+import cairo.context : Context;
+import cairo.global : patternCreateLinear;
+import glib.global : timeoutAdd;
+import glib.source : Source;
+import glib.types : PRIORITY_DEFAULT;
+import gtk.drawing_area : DrawingArea;
+import gtk.types : Allocation;
 
 import neuronsim.sim.parameter_set;
 import neuronsim.sim.impulse_sim;
@@ -23,7 +27,7 @@ class NeuralTreeCanvas : DrawingArea
     {
         MutableSimWrapper wrapper;
         size_t animationStep;
-        Timeout timeout;
+        uint timeoutSourceId;
 
         double maxVoltage()
         {
@@ -37,17 +41,17 @@ class NeuralTreeCanvas : DrawingArea
         double getColorIntensity(double voltage)
         {
             import std.math : abs;
-            return (1 - abs(voltage) / maxVoltage) ^^ 3;
+            return (1 - abs(voltage) / this.maxVoltage) ^^ 3;
         }
 
-        bool onRender()
+        bool requestRedraw()
         {
-            queueDraw();
-            animationStep += 1;
-            return animationStep < wrapper.config.treeDepth * TOTAL_STEPS;
+            this.queueDraw();
+            this.animationStep += 1;
+            return this.animationStep < this.wrapper.config.treeDepth * TOTAL_STEPS;
         }
 
-        void drawTail(Scoped!Context* context, double density, double colorIntensity, size_t centerX, size_t centerY)
+        void drawTail(Context* context, double density, double colorIntensity, size_t centerX, size_t centerY)
         {
             import std.math : PI;
             context.setSourceRgb(1, colorIntensity, 1);
@@ -55,17 +59,17 @@ class NeuralTreeCanvas : DrawingArea
             context.fill();
         }
 
-        void drawAxon(Scoped!Context* context, double density, immutable ImpulseSim impulse, immutable ParameterSet params, double proportion, size_t startX, size_t startY, size_t endX, size_t endY)
+        void drawAxon(Context* context, double density, immutable ImpulseSim impulse, immutable ParameterSet params, double proportion, size_t startX, size_t startY, size_t endX, size_t endY)
         {
             import std.math : PI;
             immutable voltageDistribution = impulse.getVoltageDistributionAt(proportion);
 
-            auto pattern = Pattern.createLinear(startX, startY, endX, endY);
+            auto pattern = patternCreateLinear(startX, startY, endX, endY);
 
             foreach (i, voltage; voltageDistribution)
             {
                 immutable offset = cast(double)i / voltageDistribution.length;
-                immutable intensity = getColorIntensity(voltage);
+                immutable intensity = this.getColorIntensity(voltage);
                 pattern.addColorStopRgb(offset, 1, intensity, 1);
             }
 
@@ -76,106 +80,105 @@ class NeuralTreeCanvas : DrawingArea
             context.stroke();
         }
 
-        void drawTree(Scoped!Context* context, double density, immutable NeuralTreeSim tree, double cumProportion, double parentAngle, size_t centerX, size_t centerY)
+        void drawTree(Context* context, double density, immutable NeuralTreeSim tree, double cumProportion, double parentAngle, size_t centerX, size_t centerY)
         {
             import std.conv : to;
             import std.math : PI, sin, cos;
             import std.algorithm : min, max;
 
-            immutable proportion = cast(double)animationStep / TOTAL_STEPS;
+            immutable proportion = cast(double)this.animationStep / TOTAL_STEPS;
             immutable newCumProportion = cumProportion + (tree.impulse is null ? 0 : tree.impulse.endProportion);
             immutable renderProportion = min(max(proportion - cumProportion, 0), 1);
 
-            immutable length = to!size_t(density * tree.params.axonalLength * (MIN_SIZE - 25) / (3.00 /* 3cm is the max axonal length */ * 2 * wrapper.config.treeDepth));
+            immutable length = to!size_t(density * tree.params.axonalLength * (MIN_SIZE - 25) / (3.00 /* 3cm is the max axonal length */ * 2 * this.wrapper.config.treeDepth));
             immutable endX = to!size_t(centerX + length * cos(parentAngle));
             immutable endY = to!size_t(centerY + length * sin(parentAngle));
 
-            drawAxon(context, density, tree.impulse, tree.params, renderProportion, centerX, centerY, endX, endY);
+            this.drawAxon(context, density, tree.impulse, tree.params, renderProportion, centerX, centerY, endX, endY);
 
             immutable childRotation = 3 * PI / (TREE_ARITY * (2 * tree.depth + 1));
 
             foreach (i, child; tree.children)
             {
                 immutable angle = (parentAngle + (cast(int)i - 1) * childRotation) % (2 * PI);
-                drawTree(context, density, child, newCumProportion, angle, endX, endY);
+                this.drawTree(context, density, child, newCumProportion, angle, endX, endY);
             }
 
             immutable voltageDistribution = tree.impulse.getVoltageDistributionAt(renderProportion);
-            immutable colorIntensity = getColorIntensity(voltageDistribution[$ - 1]);
-            drawTail(context, density, colorIntensity, endX, endY);
+            immutable colorIntensity = this.getColorIntensity(voltageDistribution[$ - 1]);
+            this.drawTail(context, density, colorIntensity, endX, endY);
         }
 
-        void drawRoot(Scoped!Context* context, double density, immutable NeuralTreeSim tree, size_t centerX, size_t centerY)
+        void drawRoot(Context* context, double density, immutable NeuralTreeSim tree, size_t centerX, size_t centerY)
         {
             import std.math : PI;
             import std.algorithm : min;
 
-            immutable renderProportion = min(cast(double)animationStep / TOTAL_STEPS, 1);
+            immutable renderProportion = min(cast(double)this.animationStep / TOTAL_STEPS, 1);
             immutable childRotation = 2 * PI / TREE_ARITY;
 
             foreach (i, child; tree.children)
             {
                 immutable angle = ((cast(int)i - 1) * childRotation) % (2 * PI);
-                drawTree(context, density, child, 0, angle, centerX, centerY);
+                this.drawTree(context, density, child, 0, angle, centerX, centerY);
             }
 
             immutable voltageDistribution = tree.children[0].impulse.getVoltageDistributionAt(renderProportion);
-            immutable colorIntensity = animationStep == 0 ? 1 : getColorIntensity(voltageDistribution[0]);
-            drawTail(context, density, colorIntensity, centerX, centerY);
+            immutable colorIntensity = this.animationStep == 0 ? 1 : this.getColorIntensity(voltageDistribution[0]);
+            this.drawTail(context, density, colorIntensity, centerX, centerY);
         }
 
-        void drawFrame(Scoped!Context* context)
+        void drawFrame(Context* context)
         {
             import std.algorithm : min;
 
             context.setSourceRgb(0, 0, 0);
             context.paint();
 
-            if (wrapper is null)
+            if (this.wrapper is null)
                 return;
 
-            GtkAllocation size;
+            Allocation size;
             getAllocation(size);
 
             immutable centerX = size.x + size.width / 2;
             immutable centerY = size.y + size.height / 2;
             immutable density = 0.9 * cast(double)min(size.width, size.height) / MIN_SIZE;
 
-            drawRoot(context, density, wrapper.tree, centerX, centerY);
+            this.drawRoot(context, density, this.wrapper.tree, centerX, centerY);
         }
 
-        bool onDraw(Scoped!Context context, Widget)
+        void onDraw(DrawingArea, Context context, int, int)
         {
-            drawFrame(&context);
-            return true;
+            this.drawFrame(&context);
         }
     }
 
     this()
     {
         super();
-        addOnDraw(&onDraw);
+        this.setDrawFunc(&this.onDraw);
     }
 
     void updateSimWrapper(MutableSimWrapper treeWrapper)
     {
-        if (timeout)
-            timeout.stop();
+        if (this.timeoutSourceId > 0)
+            Source.remove(this.timeoutSourceId);
 
-        wrapper = treeWrapper;
-        animationStep = 0;
-        queueDraw();
+        this.wrapper = treeWrapper;
+        this.animationStep = 0;
+        this.queueDraw();
     }
 
     void animate()
     {
-        if (wrapper is null)
+        if (this.wrapper is null)
             return;
 
-        if (timeout)
-            timeout.stop();
+        if (this.timeoutSourceId > 0)
+            Source.remove(this.timeoutSourceId);
 
-        animationStep = 0;
-        timeout = new Timeout(FPS, &onRender);
+        this.animationStep = 0;
+        this.timeoutSourceId = timeoutAdd(PRIORITY_DEFAULT, FPS, &this.requestRedraw);
     }
 }

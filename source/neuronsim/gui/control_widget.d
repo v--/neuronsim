@@ -2,13 +2,15 @@ module neuronsim.gui.control_widget;
 
 import std.string : format;
 
-import gtk.Box;
-import gtk.Paned;
-import gtk.Label;
-import gtk.ToggleButton;
-import gtk.CheckButton;
-import gtk.Scale;
-import gtk.Separator;
+import gtk.adjustment : Adjustment;
+import gtk.box : Box;
+import gtk.check_button : CheckButton;
+import gtk.label : Label;
+import gtk.paned : Paned;
+import gtk.scale : Scale;
+import gtk.separator : Separator;
+import gtk.toggle_button : ToggleButton;
+import gtk.types : Align, Orientation, PositionType;
 
 import neuronsim.sim.parameter;
 
@@ -25,9 +27,9 @@ class ControlWidget : Box
         Separator separator;
         bool allowRandomization;
 
-        void onRandomizeToggled(ToggleButton button)
+        void onRandomizeToggled(CheckButton button)
         {
-            scale.setSensitive(!button.getActive());
+            this.scale.setSensitive(!button.getActive());
         }
     }
 
@@ -35,58 +37,63 @@ class ControlWidget : Box
     {
         import std.math : isNaN;
 
-        super(Orientation.VERTICAL, 0);
+        super(Orientation.Vertical, 0);
         this.parameter = parameter;
-        allowRandomization = allowRandomization;
+        this.allowRandomization = allowRandomization;
 
-        separator = new Separator(Orientation.HORIZONTAL);
-        separator.setMarginBottom(10);
-        add(separator);
+        this.separator = new Separator(Orientation.Horizontal);
+        this.separator.setMarginBottom(10);
+        this.append(this.separator);
 
-        paned = new Paned(Orientation.HORIZONTAL);
-        add(paned);
+        this.paned = new Paned(Orientation.Horizontal);
+        this.append(this.paned);
 
-        immutable labelText = parameter.unit is null ? parameter.name : "%s (%s)".format(parameter.name, parameter.unit);
-        label = new Label(labelText);
-        label.setXalign(0);
-        paned.pack1(label, true, false);
+        immutable labelText = this.parameter.unit is null ? this.parameter.name : "%s (%s)".format(this.parameter.name, this.parameter.unit);
+        this.label = new Label(labelText);
+        this.label.setXalign(0);
+        this.paned.startChild(this.label);
 
-        check = new CheckButton("Randomize");
-        check.setActive(allowRandomization);
-        check.addOnToggled(&onRandomizeToggled);
+        this.check = new CheckButton();
+        this.check.setLabel("Randomize");
+        this.check.setActive(this.allowRandomization);
 
-        if (allowRandomization)
-            paned.pack2(check, false, false);
+        if (this.allowRandomization)
+        {
+            this.check.connectToggled(&this.onRandomizeToggled);
+            this.check.setHalign(Align.End);
+            this.paned.endChild(this.check);
+        }
 
-        immutable step = isNaN(parameter.step) ? (parameter.max - parameter.min) / 100 : parameter.step;
-        scale = new Scale(Orientation.HORIZONTAL, parameter.min, parameter.max, step);
+        immutable step = isNaN(this.parameter.step) ? (this.parameter.max - this.parameter.min) / 100 : this.parameter.step;
+        auto adjustment = new Adjustment(this.parameter.mode, this.parameter.min, this.parameter.max, step, -1, -1);
+        this.scale = new Scale(Orientation.Horizontal, adjustment);
 
-        if (allowRandomization)
-            scale.addMark(parameter.mode, GtkPositionType.BOTTOM, "%g (mode)".format(parameter.mode));
+        if (this.allowRandomization)
+            this.scale.addMark(this.parameter.mode, PositionType.Bottom, "%g (mode)".format(this.parameter.mode));
 
-        scale.addMark(parameter.min, GtkPositionType.BOTTOM, "%g".format(parameter.min));
-        scale.addMark(parameter.max, GtkPositionType.BOTTOM, "%g".format(parameter.max));
-        scale.setValue(parameter.mode);
-        scale.setSensitive(!allowRandomization);
-        add(scale);
+        this.scale.addMark(this.parameter.min, PositionType.Bottom, "%g".format(this.parameter.min));
+        this.scale.addMark(this.parameter.max, PositionType.Bottom, "%g".format(this.parameter.max));
+        this.scale.setValue(this.parameter.mode);
+        this.scale.setSensitive(!this.allowRandomization);
+        this.append(this.scale);
     }
 
     double getValue()
     {
-        if (check.getActive())
-            return parameter.simulateTriangular();
+        if (this.check.getActive())
+            return this.parameter.simulateTriangular();
 
-        return scale.getValue();
+        return this.scale.getValue();
     }
 
     override void setSensitive(bool sensitive)
     {
-        check.setSensitive(sensitive);
-        label.setSensitive(sensitive);
+        this.check.setSensitive(sensitive);
+        this.label.setSensitive(sensitive);
 
         if (sensitive)
-            scale.setSensitive(!check.getActive());
+            this.scale.setSensitive(!this.check.getActive());
         else
-            scale.setSensitive(false);
+            this.scale.setSensitive(false);
     }
 }

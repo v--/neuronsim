@@ -1,17 +1,17 @@
 module neuronsim.gui.control_box;
 
-import std.traits : fullyQualifiedName, getUDAs, getSymbolsByUDA;
+import std.traits : getUDAs, getSymbolsByUDA, fullyQualifiedName;
 
-import gtk.Box;
-import gtk.Button;
-
-import neuronsim.sim.neural_tree_sim;
-import neuronsim.sim.impulse_sim;
-import neuronsim.sim.sim_config;
-import neuronsim.sim.parameter_set;
-import neuronsim.sim.parameter;
+import gtk.box : Box;
+import gtk.button : Button;
+import gtk.types : Orientation;
 
 import neuronsim.gui.control_widget;
+import neuronsim.sim.impulse_sim;
+import neuronsim.sim.neural_tree_sim;
+import neuronsim.sim.parameter;
+import neuronsim.sim.parameter_set;
+import neuronsim.sim.sim_config;
 
 private alias parameterSetMembers = getSymbolsByUDA!(ParameterSet, Parameter);
 
@@ -31,43 +31,42 @@ class ControlBox : Box
 
     this()
     {
-        super(Orientation.VERTICAL, 15);
-        setMarginRight(15);
-        setMarginBottom(15);
-        setMarginLeft(15);
-        setMarginTop(15);
+        super(Orientation.Vertical, 15);
+        this.margin(15);
 
-        runButton = new Button("Run simulation on generated tree");
-        add(runButton);
+        this.runButton = new Button();
+        this.runButton.setLabel("Run simulation on generated tree");
+        this.append(this.runButton);
 
-        generateButton = new Button("Generate new tree");
-        add(generateButton);
+        this.generateButton = new Button();
+        this.generateButton.setLabel("Generate new tree");
+        this.append(this.generateButton);
 
-        treeDepthControl = new ControlWidget(TREE_DEPTH_PARAMETER, false);
-        add(treeDepthControl);
+        this.treeDepthControl = new ControlWidget(TREE_DEPTH_PARAMETER, false);
+        this.append(this.treeDepthControl);
 
-        initialVoltageControl = new ControlWidget(INITIAL_VOLTAGE_PARAMETER, false);
-        add(initialVoltageControl);
+        this.initialVoltageControl = new ControlWidget(INITIAL_VOLTAGE_PARAMETER, false);
+        this.append(this.initialVoltageControl);
 
         static foreach (i, member; parameterSetMembers)
         {
             {
                 auto parameter = getUDAs!(member, Parameter)[0];
                 auto widget = new ControlWidget(parameter);
-                add(widget);
+                this.append(widget);
                 controls[i] = widget;
             }
         }
     }
 
-    void addOnGenerateClicked(void delegate(ControlBox) dlg)
+    ulong connectGenerateClicked(void delegate(ControlBox) dlg)
     {
-        generateButton.addOnClicked(btn => dlg(this));
+        return this.generateButton.connectClicked((Button btn) => dlg(this));
     }
 
-    void addOnRunClicked(void delegate(ControlBox) dlg)
+    ulong connectRunClicked(void delegate(ControlBox) dlg)
     {
-        runButton.addOnClicked(btn => dlg(this));
+        return this.runButton.connectClicked((Button btn) => dlg(this));
     }
 
     ParameterSet getParamSet()
@@ -85,7 +84,7 @@ class ControlBox : Box
         import std.range : front, popFront, empty, generate, take;
         import std.array : array;
 
-        return generate(&getParamSet)
+        return generate(&this.getParamSet)
             .take(count)
             .array()
             .idup();
@@ -93,13 +92,13 @@ class ControlBox : Box
 
     double getInitialVoltage()
     {
-        return initialVoltageControl.getValue();
+        return this.initialVoltageControl.getValue();
     }
 
     size_t getTreeDepth()
     {
         import std.conv : to;
-        return to!size_t(treeDepthControl.getValue());
+        return to!size_t(this.treeDepthControl.getValue());
     }
 
     immutable(SimConfig) getValue()
@@ -107,19 +106,19 @@ class ControlBox : Box
         auto depth = getTreeDepth();
 
         return new immutable SimConfig(
-            getParamSets(countFullNaryTreeNodes(TREE_ARITY, depth)),
-            getInitialVoltage(),
+            this.getParamSets(countFullNaryTreeNodes(TREE_ARITY, depth)),
+            this.getInitialVoltage(),
             depth
         );
     }
 
     void setOverallSensitive(bool sensitive)
     {
-        generateButton.setSensitive(sensitive);
-        runButton.setSensitive(sensitive);
+        this.generateButton.setSensitive(sensitive);
+        this.runButton.setSensitive(sensitive);
 
-        treeDepthControl.setSensitive(sensitive);
-        initialVoltageControl.setSensitive(sensitive);
+        this.treeDepthControl.setSensitive(sensitive);
+        this.initialVoltageControl.setSensitive(sensitive);
 
         static foreach (i, member; parameterSetMembers)
             controls[i].setSensitive(sensitive);
@@ -127,6 +126,6 @@ class ControlBox : Box
 
     void setGenerateButtonSensitive(bool sensitive)
     {
-        generateButton.setSensitive(sensitive);
+        this.generateButton.setSensitive(sensitive);
     }
 }

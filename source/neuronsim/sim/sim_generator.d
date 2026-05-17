@@ -1,10 +1,10 @@
 module neuronsim.sim.sim_generator;
 
-import gtk.Main;
-import glib.Timeout;
-
-import std.stdio: stderr;
+import glib.global : timeoutAdd;
+import glib.source : Source;
+import glib.types : PRIORITY_DEFAULT;
 import std.concurrency: Tid, thisTid, spawn, send, receiveTimeout;
+import std.stdio: stderr;
 
 import neuronsim.sim.mutable_sim_wrapper;
 import neuronsim.sim.neural_tree_sim;
@@ -35,7 +35,7 @@ class SimGenerator
     private
     {
         Tid worker;
-        Timeout timeout;
+        uint timeoutSourceId;
         MutableSimWrapper treeWrapper;
 
         void delegate() onPoll;
@@ -50,18 +50,21 @@ class SimGenerator
 
     void onMessage(immutable NeuralTreeSim tree)
     {
-        treeWrapper = new MutableSimWrapper(treeWrapper.config, tree);
-        onSuccess(treeWrapper);
+        this.treeWrapper = new MutableSimWrapper(this.treeWrapper.config, tree);
+        onSuccess(this.treeWrapper);
     }
 
     void generate(immutable SimConfig config)
     {
-        treeWrapper = new MutableSimWrapper(config, null);
+        this.treeWrapper = new MutableSimWrapper(config, null);
+        this.worker = spawn(&work, thisTid(), config);
 
-        worker = spawn(&work, thisTid(), config);
-        timeout = new Timeout(POLL_INTERVAL, {
-            onPoll();
-            return !receiveTimeout(dur!"msecs"(POLL_DURATION), &onMessage);
+        if (this.timeoutSourceId > 0)
+            Source.remove(this.timeoutSourceId);
+
+        this.timeoutSourceId = timeoutAdd(PRIORITY_DEFAULT, POLL_INTERVAL, {
+            this.onPoll();
+            return !receiveTimeout(dur!"msecs"(POLL_DURATION), &this.onMessage);
         });
     }
 }

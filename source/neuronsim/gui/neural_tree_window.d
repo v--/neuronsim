@@ -1,14 +1,16 @@
 module neuronsim.gui.neural_tree_window;
 
-import gtk.MainWindow;
-import gtk.Paned;
-import gtk.ScrolledWindow;
-import gtk.ProgressBar;
+import adw.application : Application;
+import adw.application_window : ApplicationWindow;
+import gtk.paned : Paned;
+import gtk.progress_bar : ProgressBar;
+import gtk.scrolled_window : ScrolledWindow;
+import gtk.types : Orientation;
 
 import neuronsim.gui.control_box;
 import neuronsim.gui.neural_tree_canvas;
 
-class NeuralTreeWindow : MainWindow
+class NeuralTreeWindow : ApplicationWindow
 {
     enum PROGRESS_PULSE_STEP = 0.2;
 
@@ -24,32 +26,32 @@ class NeuralTreeWindow : MainWindow
     NeuralTreeCanvas canvas;
     ProgressBar progressBar;
 
-    this()
+    this(Application app)
     {
-        super("neuronsim");
+        super(app);
 
-        outerPaned = new Paned(Orientation.VERTICAL);
-        add(outerPaned);
+        this.outerPaned = new Paned(Orientation.Vertical);
+        this.setContent(this.outerPaned);
 
-        progressBar = new ProgressBar();
-        progressBar.setPulseStep(PROGRESS_PULSE_STEP);
-        outerPaned.pack1(progressBar, false, false);
+        this.progressBar = new ProgressBar();
+        this.progressBar.setPulseStep(PROGRESS_PULSE_STEP);
+        this.outerPaned.startChild(this.progressBar);
 
-        innerPaned = new Paned(Orientation.HORIZONTAL);
-        outerPaned.pack2(innerPaned, true, false);
+        this.innerPaned = new Paned(Orientation.Horizontal);
+        this.outerPaned.endChild(this.innerPaned);
 
-        controlScrolledWindow = new ScrolledWindow();
-        controlScrolledWindow.setSizeRequest(500, -1);
-        innerPaned.pack1(controlScrolledWindow, false, false);
+        this.controlScrolledWindow = new ScrolledWindow();
+        this.controlScrolledWindow.setSizeRequest(300, -1);
+        this.innerPaned.startChild(this.controlScrolledWindow);
 
-        controlBox = new ControlBox();
-        controlScrolledWindow.add(controlBox);
+        this.controlBox = new ControlBox();
+        this.controlScrolledWindow.setChild(this.controlBox);
 
-        canvasScrolledWindow = new ScrolledWindow();
-        canvasScrolledWindow.setSizeRequest(NeuralTreeCanvas.MIN_SIZE, NeuralTreeCanvas.MIN_SIZE);
-        innerPaned.pack2(canvasScrolledWindow, true, false);
+        this.canvasScrolledWindow = new ScrolledWindow();
+        this.canvasScrolledWindow.setSizeRequest(NeuralTreeCanvas.MIN_SIZE, NeuralTreeCanvas.MIN_SIZE);
+        this.innerPaned.endChild(this.canvasScrolledWindow);
 
-        canvas = new NeuralTreeCanvas();
-        canvasScrolledWindow.addWithViewport(canvas);
+        this.canvas = new NeuralTreeCanvas();
+        this.canvasScrolledWindow.setChild(this.canvas);
     }
 }

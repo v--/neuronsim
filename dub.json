@@ -1,11 +1,14 @@
 {
-	"authors": [
-		"Ianis Vasilev"
-	],
-	"dependencies": {
-		"gtk-d:gtkd": "~>3.9.0"
-	},
-	"description": "A Hodgkin-Huxley model visualization for a small neural tree.",
-	"license": "Unlicense",
-	"name": "neuronsim"
+  "description": "A Hodgkin-Huxley model visualization for a small neural tree.",
+  "dependencies": {
+    "gid:adw1": "~>0.9.10",
+    "gid:cairo1": "~>0.9.10",
+    "gid:glib2": "~>0.9.10",
+    "gid:gtk4": "~>0.9.10"
+  },
+  "authors": [
+    "Ianis Vasilev"
+  ],
+  "license": "Unlicense",
+  "name": "neuronsim"
 }
